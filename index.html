@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2F5D5A">
+<meta name="description" content="A daily companion for recovery: morning message, journal, check-ins and help for hard moments.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="One Day">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>One Day Daily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one calm column per tab, a sticky top bar with the help button, and a bottom tab bar like a phone app */
+:root{
+  --bg:#EDF0EC;          /* morning mist */
+  --surface:#F8FAF7;
+  --fg:#1C2A27;          /* spruce */
+  --muted:#5A6B66;
+  --line:#CBD5CF;
+  --accent:#8A5A12;      /* first light */
+  --accent-soft:#F1E3C8;
+  --river:#2F5D5A;
+  --river-soft:#DCE8E5;
+  --sos:#9C3B2A;
+  --sos-soft:#F4DED8;
+  --display:"Newsreader", Georgia, "Times New Roman", serif;
+  --body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131B1A;--surface:#1A2422;--fg:#E4EAE6;--muted:#9AABA5;--line:#2C3A37;
+  --accent:#E3B062;--accent-soft:#3A2F1D;--river:#8CC3BD;--river-soft:#1F3533;--sos:#F09A86;--sos-soft:#3C221D;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131B1A;--surface:#1A2422;--fg:#E4EAE6;--muted:#9AABA5;--line:#2C3A37;
+  --accent:#E3B062;--accent-soft:#3A2F1D;--river:#8CC3BD;--river-soft:#1F3533;--sos:#F09A86;--sos-soft:#3C221D;color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6}
+[hidden]{display:none!important}
+.wrap{max-width:640px;margin:0 auto;padding-inline:20px;padding-block:8px calc(110px + env(safe-area-inset-bottom,0px))}
+:focus-visible{outline:2px solid var(--river);outline-offset:2px}
+button{font:inherit}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:640px;margin:0 auto;padding-inline:20px;padding-block:12px;display:flex;align-items:center;gap:12px}
+.brand{font-family:var(--display);font-weight:600;font-size:1.3rem;margin:0;letter-spacing:-.01em;white-space:nowrap}
+.brand em{font-weight:400;color:var(--accent)}
+.daycount{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.daycount b{color:var(--fg)}
+.topbar .spacer{flex:1}
+.sos-btn{font-size:.85rem;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--sos);background:var(--sos-soft);color:var(--sos);cursor:pointer;white-space:nowrap}
+.sos-btn:hover{background:var(--sos);color:var(--bg)}
+
+/* bottom tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{background:none;border:0;color:var(--muted);padding:8px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.72rem;font-weight:500;cursor:pointer;min-width:0}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--river)}
+.tab[aria-current="page"] svg{stroke-width:2.4}
+
+.view{display:flex;flex-direction:column;gap:40px;padding-top:20px}
+@media (prefers-reduced-motion:no-preference){.view{animation:fade .3s ease}}
+@keyframes fade{from{opacity:.4}to{opacity:1}}
+
+.label{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+h2.h{font-family:var(--display);font-weight:600;font-size:1.3rem;margin:0 0 14px;text-wrap:balance;line-height:1.3}
+h1.page{font-family:var(--display);font-weight:600;font-size:1.75rem;margin:0;line-height:1.2;text-wrap:balance}
+.lede{color:var(--muted);margin:6px 0 0;max-width:60ch}
+.hint{font-size:.85rem;color:var(--muted);margin:12px 0 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.btn{font-size:.9rem;font-weight:500;padding:10px 16px;border-radius:8px;border:1px solid var(--river);background:var(--river);color:var(--bg);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--river)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+.linkbtn{font-size:.85rem;background:none;border:0;padding:0;color:var(--river);cursor:pointer;text-decoration:underline}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=text],input[type=tel],input[type=number],input[type=date],textarea{font:inherit;font-size:.95rem;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);box-sizing:border-box;max-width:100%}
+textarea{width:100%;resize:vertical;min-height:84px;line-height:1.5}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>span{font-size:.85rem;font-weight:500}
+
+/* today */
+.daybar{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.daybar .date{text-align:center;flex:1;min-width:0}
+.daybar .date strong{display:block;font-family:var(--display);font-size:1.15rem;font-weight:600}
+.daybar .date span{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.nav{font-size:1.2rem;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;flex:none}
+.today-link{font-size:.75rem;background:none;border:0;color:var(--river);cursor:pointer;text-decoration:underline;padding:0}
+.rehearse{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:var(--river-soft);border:0;color:var(--fg);cursor:pointer;text-align:left;width:100%}
+.rehearse .ring{width:38px;height:38px;border-radius:50%;border:2px solid var(--river);flex:none;display:grid;place-items:center;color:var(--river)}
+.rehearse strong{display:block;font-weight:600}
+.rehearse span{font-size:.85rem;color:var(--muted)}
+.quote blockquote{margin:0;font-family:var(--display);font-style:italic;font-size:clamp(1.45rem,5vw,1.9rem);line-height:1.35;text-wrap:balance}
+.quote blockquote::before{content:"\201C";color:var(--accent)}
+.quote blockquote::after{content:"\201D";color:var(--accent)}
+.quote cite{display:block;margin-top:14px;font-style:normal;font-size:.9rem;color:var(--muted)}
+.quote cite b{color:var(--fg);font-weight:600}
+.value-card{border-left:3px solid var(--accent);padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:10px}
+.value-name{font-family:var(--display);font-size:1.6rem;font-weight:600;line-height:1.2;margin:0}
+ol.aff{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+ol.aff li{font-family:var(--display);font-size:1.15rem;line-height:1.4;padding-left:28px;position:relative}
+ol.aff li::before{content:"";position:absolute;left:0;top:.8em;width:12px;height:1px;background:var(--accent)}
+ul.grat{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+ul.grat label{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+ul.grat input{margin-top:6px;accent-color:var(--river);width:18px;height:18px;flex:none}
+.mine{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--river);margin-left:6px;white-space:nowrap}
+.reflect p{margin:0 0 14px;max-width:62ch}
+.reflect .ask{font-family:var(--display);font-style:italic;font-size:1.1rem;color:var(--river);margin-bottom:12px}
+.reasons ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:10px}
+.reasons ol li::marker{color:var(--accent);font-weight:600}
+.close-line{margin:22px 0 0;font-family:var(--display);font-size:1.25rem;text-align:center;color:var(--river)}
+
+/* journal */
+.composer{display:flex;flex-direction:column;gap:10px}
+.composer textarea{min-height:160px;font-size:1rem;padding:12px 14px;border-radius:10px}
+.composer textarea.listening{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.mic{font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--fg);cursor:pointer}
+.mic svg{width:18px;height:18px;flex:none}
+.mic .dot{width:9px;height:9px;border-radius:50%;background:var(--bg);display:none}
+.mic.on{background:var(--accent);color:var(--bg)}
+.mic.on .dot{display:block}
+@media (prefers-reduced-motion:no-preference){.mic.on .dot{animation:pulse 1.2s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.25}}
+.interim{font-size:.9rem;color:var(--muted);font-style:italic;min-height:1.3em;margin:0}
+.voice-note{font-size:.82rem;color:var(--muted);margin:0;max-width:60ch}
+.toggle{display:flex;gap:10px;align-items:center;font-size:.85rem;color:var(--muted)}
+.toggle input{accent-color:var(--river);width:16px;height:16px}
+.entries{display:flex;flex-direction:column;gap:22px}
+.entries h3{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.entry{border-left:2px solid var(--line);padding:2px 0 2px 14px;display:flex;flex-direction:column;gap:6px}
+.entry .meta{display:flex;gap:10px;align-items:baseline;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.entry .meta .src{color:var(--accent)}
+.entry>p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;max-width:62ch}
+.del{font-size:.78rem;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;text-decoration:underline;margin-left:auto}
+.del.confirm{color:var(--sos);font-weight:600}
+.empty{font-size:.9rem;color:var(--muted);margin:0}
+.ai{margin-top:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.ai-head{display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--river)}
+.ai-head svg{width:15px;height:15px;flex:none}
+.ai-body{font-family:var(--display);font-size:1.06rem;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;max-width:62ch}
+.ai-body.thinking{font-family:var(--body);font-size:.9rem;font-style:italic;color:var(--muted)}
+.ai-aff{list-style:none;margin:4px 0 0;padding:12px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:8px}
+.ai-aff li{font-family:var(--display);font-style:italic;color:var(--accent);padding-left:20px;position:relative}
+.ai-aff li::before{content:"";position:absolute;left:0;top:.75em;width:10px;height:1px;background:var(--accent)}
+.ai-foot{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
+.ask-ai{font-size:.85rem;font-weight:500;align-self:flex-start;display:inline-flex;gap:8px;align-items:center;padding:8px 14px;border-radius:999px;border:1px solid var(--river);background:transparent;color:var(--river);cursor:pointer;margin-top:4px}
+.ask-ai svg{width:15px;height:15px}
+.ai-err{font-size:.85rem;color:var(--sos);margin:0}
+.store-note{font-size:.78rem;color:var(--muted);margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;background:var(--surface)}
+.seg button{border:0;background:none;padding:6px 14px;border-radius:999px;font-size:.85rem;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--river);color:var(--bg)}
+.summary{font-size:.98rem;line-height:1.6;max-width:62ch}
+.summary h4{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:16px 0 6px}
+.summary h4:first-child{margin-top:0}
+.summary p{margin:0 0 6px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* check-in */
+.scale{display:flex;flex-direction:column;gap:8px}
+.scale-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.scale-head strong{font-weight:600}
+.scale-head span{font-size:.8rem;color:var(--muted)}
+.pips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
+.pip b{font-size:1.05rem;font-variant-numeric:tabular-nums}
+.pip small{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pip[aria-pressed="true"]{background:var(--river);border-color:var(--river);color:var(--bg)}
+.pip[aria-pressed="true"] small{color:var(--bg)}
+.sober-q{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:7px 14px;font-size:.88rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--river);border-color:var(--river);color:var(--bg)}
+.gentle{background:var(--accent-soft);border-radius:10px;padding:14px 16px;font-size:.92rem;margin:0}
+.saved-at{font-size:.8rem;color:var(--muted)}
+
+/* progress */
+.hero{display:flex;flex-direction:column;gap:4px}
+.hero .num{font-family:var(--display);font-size:clamp(3.6rem,16vw,5.2rem);font-weight:600;line-height:1;font-variant-numeric:tabular-nums;color:var(--river)}
+.hero .unit{font-size:1rem;color:var(--muted)}
+.bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.next{display:flex;flex-direction:column;gap:8px}
+.next-line{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat:last-child:nth-child(odd){grid-column:1/-1}
+.stat b{font-family:var(--display);font-size:1.7rem;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat span{font-size:.8rem;color:var(--muted)}
+.miles{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.miles li{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.82rem;color:var(--muted);display:flex;gap:6px;align-items:baseline}
+.miles li.done{border-color:var(--accent);background:var(--accent-soft);color:var(--fg)}
+.miles li small{font-size:.72rem;color:var(--muted)}
+.trend{display:flex;flex-direction:column;gap:14px}
+.trend-row h3{font-size:.85rem;font-weight:600;margin:0;display:flex;justify-content:space-between;gap:8px}
+.trend-row h3 span{font-weight:400;color:var(--muted);font-size:.78rem}
+.trend svg{display:block;width:100%;height:auto;overflow:visible;touch-action:pan-y}
+.trend-x{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)}
+.readout{font-size:.85rem;min-height:1.4em;color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* me */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.listedit{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.listedit li{display:flex;gap:10px;align-items:baseline;justify-content:space-between;padding:8px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.listedit li span{min-width:0;overflow-wrap:anywhere}
+.addrow{display:flex;gap:8px;flex-wrap:wrap}
+.addrow input{flex:1 1 180px;min-width:0}
+.contact{display:flex;flex-direction:column;gap:2px;min-width:0}
+.contact small{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.overlay-in{max-width:600px;margin:0 auto;padding-inline:20px;padding-block:18px 48px;display:flex;flex-direction:column;gap:32px}
+.overlay-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.x{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;font-size:1.2rem;flex:none}
+.sos-hero h1{font-family:var(--display);font-size:clamp(1.7rem,6vw,2.2rem);line-height:1.2;margin:0 0 8px;text-wrap:balance}
+.sos-hero p{margin:0;color:var(--muted);max-width:56ch}
+.pacer{display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:8px}
+.breath{width:140px;height:140px;border-radius:50%;background:var(--river-soft);border:2px solid var(--river);display:grid;place-items:center;transform:scale(.7);transition:transform 4s ease-in-out}
+.breath.out{transition-duration:6s}
+.breath.big{transform:scale(1)}
+.breath span{font-family:var(--display);font-size:1.15rem;color:var(--river)}
+.clock{font-size:1.6rem;font-variant-numeric:tabular-nums;font-weight:500}
+.halt{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.halt button{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:10px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;min-width:0}
+.halt button b{font-family:var(--display);font-size:1.4rem;line-height:1}
+.halt button small{font-size:.72rem;color:var(--muted)}
+.halt button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.halt button[aria-pressed="true"] small{color:var(--bg)}
+.halt-tips{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.halt-tips li{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.92rem}
+.tape{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
+.people{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.people li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);flex-wrap:wrap}
+.people .num{font-variant-numeric:tabular-nums;user-select:all}
+.rehearse-step{font-family:var(--display);font-size:clamp(1.3rem,5vw,1.6rem);line-height:1.4;text-align:center;min-height:5.6em;max-width:30ch;margin:0 auto;text-wrap:balance}
+.steps-dots{display:flex;gap:6px;justify-content:center}
+.steps-dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.steps-dots i.on{background:var(--river)}
+
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:.85rem;z-index:60;max-width:calc(100vw - 40px)}
+footer{border-top:1px solid var(--line);padding-top:18px;font-size:.8rem;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+a{color:var(--river)}
+@media (prefers-reduced-motion:reduce){.breath{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-in">
+    <p class="brand">One Day <em>daily</em></p>
+    <span class="daycount" id="daycount"></span>
+    <span class="spacer"></span>
+    <button class="sos-btn" id="sosOpen" type="button">I'm struggling</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ================= TODAY ================= -->
+<section class="view" id="v-today" aria-label="Today">
+  <div class="daybar">
+    <button class="nav" id="prev" type="button" aria-label="Previous day">&#8249;</button>
+    <div class="date">
+      <span id="dayKicker">Today</span>
+      <strong id="dateLabel"></strong>
+      <button class="today-link" id="toToday" type="button" hidden>Back to today</button>
+    </div>
+    <button class="nav" id="next" type="button" aria-label="Next day">&#8250;</button>
+  </div>
+
+  <button class="rehearse" id="rehearseOpen" type="button">
+    <span class="ring" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+    <span><strong>Begin with 3 quiet minutes</strong><span>Breathe and picture the day you want to live</span></span>
+  </button>
+
+  <section class="quote">
+    <p class="label">Words to start the day</p>
+    <blockquote id="quote"></blockquote>
+    <cite id="quoteBy"></cite>
+  </section>
+
+  <section>
+    <p class="label">Today's value</p>
+    <div id="valueBox"></div>
+  </section>
+
+  <section>
+    <p class="label">Affirmations</p>
+    <h2 class="h">Say these slowly, out loud if you can</h2>
+    <ol class="aff" id="aff"></ol>
+  </section>
+
+  <section>
+    <p class="label">Gratitude</p>
+    <h2 class="h">Five things I'm grateful for today</h2>
+    <ul class="grat" id="grat"></ul>
+    <p class="hint">Check each one off as you really feel it.</p>
+  </section>
+
+  <section>
+    <p class="label">Today's reflection</p>
+    <div class="card reflect">
+      <h2 class="h" id="refTitle"></h2>
+      <p id="refBody"></p>
+      <p class="ask" id="refAsk"></p>
+      <button class="linkbtn" id="toJournal" type="button">Answer this in my journal</button>
+    </div>
+    <p class="hint">For the AA member-written reading, see <a href="https://www.aa.org/daily-reflection" target="_blank" rel="noopener">today's Daily Reflection at aa.org</a>.</p>
+  </section>
+
+  <section class="reasons">
+    <p class="label">Why I stay sober</p>
+    <h2 class="h">Five reasons for today</h2>
+    <ol id="reasons"></ol>
+    <p class="close-line">Just for today, I choose sobriety.</p>
+  </section>
+
+  <div class="row"><button class="btn ghost" id="copy" type="button">Copy today's message</button></div>
+
+  <footer>
+    <p style="margin:0">Quotes are from public-domain translations. Affirmations, gratitude, reflections and reasons are original writing and are not AA-approved literature.</p>
+  </footer>
+</section>
+
+<!-- ================= JOURNAL ================= -->
+<section class="view" id="v-journal" aria-label="Journal" hidden>
+  <div>
+    <h1 class="page">My journal</h1>
+    <p class="lede">Speak it or write it. Your entries are private.</p>
+  </div>
+
+  <section class="composer" aria-label="New entry">
+    <p class="ask" id="jPrompt" style="font-family:var(--display);font-style:italic;color:var(--river);margin:0;font-size:1.05rem"></p>
+    <label for="entryText" class="hint" style="margin:0">Today's entry</label>
+    <textarea id="entryText" placeholder="Tap Speak and talk, or just type here..."></textarea>
+    <p class="interim" id="interim" aria-live="polite"></p>
+    <div class="row">
+      <button class="mic" id="mic" type="button" aria-pressed="false">
+        <span class="dot" aria-hidden="true"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        <span id="micLabel">Speak</span>
+      </button>
+      <span style="flex:1"></span>
+      <button class="btn ghost" id="clearEntry" type="button">Clear</button>
+      <button class="btn" id="saveEntry" type="button">Save entry</button>
+    </div>
+    <p class="voice-note" id="voiceNote"></p>
+    <label class="toggle" id="aiToggleRow" hidden><input type="checkbox" id="aiAuto" checked> Get a caring response when I save</label>
+  </section>
+
+  <section class="card" id="weeklyCard" aria-labelledby="wkHead">
+    <p class="label">For my counsellor</p>
+    <h2 class="h" id="wkHead">Weekly summary</h2>
+    <p class="hint" style="margin:0 0 14px">A short summary of your week's journal and check-ins, to bring to your next session.</p>
+    <div class="row" style="margin-bottom:14px">
+      <div class="seg" role="group" aria-label="Which week">
+        <button type="button" id="wkThis" aria-pressed="true">This week</button>
+        <button type="button" id="wkLast" aria-pressed="false">Last week</button>
+      </div>
+      <span class="saved-at" id="wkRange"></span>
+    </div>
+    <div id="wkOut"></div>
+    <div class="row" style="margin-top:14px" id="wkActions"></div>
+  </section>
+
+  <section aria-label="Past entries">
+    <div class="entries" id="entries"></div>
+  </section>
+  <p class="store-note" id="storeNote"></p>
+  <p class="store-note" id="aiNote" hidden>Responses are written by AI in the voice of a caring psychologist. They're support between sessions, not a replacement for your counsellor, your sponsor or professional care.</p>
+</section>
+
+<!-- ================= CHECK-IN ================= -->
+<section class="view" id="v-checkin" aria-label="Check-in" hidden>
+  <div>
+    <h1 class="page">Check-in</h1>
+    <p class="lede" id="ciLede"></p>
+    <div class="seg" role="group" aria-label="Which day" style="margin-top:12px">
+      <button type="button" id="ciToday" aria-pressed="true">Today</button>
+      <button type="button" id="ciYest" aria-pressed="false">Yesterday</button>
+    </div>
+  </div>
+
+  <section aria-labelledby="ciHead" style="display:flex;flex-direction:column;gap:22px">
+    <div><p class="label">How I'm doing</p><h2 class="h" id="ciHead" style="margin:0">Takes ten seconds. Tap one in each row.</h2></div>
+    <div id="scales" style="display:flex;flex-direction:column;gap:22px"></div>
+    <label class="field"><span>Anything to note? (optional)</span><textarea id="ciNote" placeholder="A word or two about today"></textarea></label>
+    <p class="saved-at" id="ciSaved"></p>
+  </section>
+
+  <section class="card" aria-labelledby="evHead" style="display:flex;flex-direction:column;gap:18px">
+    <div>
+      <p class="label">Evening review</p>
+      <h2 class="h" id="evHead" style="margin:0">An honest look back at the day</h2>
+      <p class="hint" style="margin-top:6px">In the spirit of the 10th Step: notice, own your part, and let the day go.</p>
+    </div>
+    <div class="field"><span>Did I stay sober today?</span>
+      <div class="sober-q"><button class="chip" type="button" id="soberYes" aria-pressed="false">Yes</button><button class="chip" type="button" id="soberNo" aria-pressed="false">Not today</button></div>
+    </div>
+    <p class="gentle" id="slipNote" hidden>Thank you for being honest. That takes real courage, and one hard day doesn't erase your progress. Please reach out to your sponsor or get to a meeting today. If you want to restart your count, you can change your sobriety date under Me.</p>
+    <div id="evQs" style="display:flex;flex-direction:column;gap:16px"></div>
+    <div class="row"><button class="btn" id="evSave" type="button">Save evening review</button><span class="saved-at" id="evSaved"></span></div>
+  </section>
+</section>
+
+<!-- ================= PROGRESS ================= -->
+<section class="view" id="v-progress" aria-label="Progress" hidden>
+  <h1 class="page">Progress</h1>
+  <section class="hero" id="hero"></section>
+  <section class="next" id="nextMile"></section>
+  <section class="stats" id="stats"></section>
+  <section>
+    <p class="label">Milestones</p>
+    <ul class="miles" id="miles"></ul>
+  </section>
+  <section>
+    <p class="label">Last 30 days</p>
+    <h2 class="h">How I've been feeling</h2>
+    <div id="trend" class="trend"></div>
+  </section>
+</section>
+
+<!-- ================= ME ================= -->
+<section class="view" id="v-me" aria-label="Me" hidden>
+  <div>
+    <h1 class="page">Me</h1>
+    <p class="lede">Make the app yours. Everything here is private to you.</p>
+  </div>
+
+  <section class="card" style="display:flex;flex-direction:column;gap:16px">
+    <p class="label" style="margin:0">My sobriety</p>
+    <div class="grid2">
+      <label class="field"><span>Sobriety date</span><input type="date" id="meDate"></label>
+      <label class="field"><span>Drinks I used to have per day</span><input type="number" id="meDrinks" min="0" step="1" inputmode="numeric" placeholder="e.g. 6"></label>
+      <label class="field"><span>Money I used to spend per day ($)</span><input type="number" id="meSpend" min="0" step="1" inputmode="decimal" placeholder="e.g. 25"></label>
+    </div>
+    <p class="hint" style="margin:0">Used for your day count, milestones, money saved and drinks not taken.</p>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div><p class="label">My values</p><h2 class="h" style="margin:0">Choose up to five that matter most</h2>
+    <p class="hint" style="margin-top:6px">One shows up on Today each morning, with space to name a small way to live it. <span id="valCount"></span></p></div>
+    <div class="chips" id="valChips"></div>
+    <div class="addrow"><input type="text" id="valNew" placeholder="Add your own value" aria-label="Add your own value"><button class="btn ghost" type="button" id="valAdd">Add</button></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div><p class="label">Support people</p><h2 class="h" style="margin:0">Who I can reach out to</h2>
+    <p class="hint" style="margin-top:6px">They show up when you tap "I'm struggling".</p></div>
+    <ul class="listedit" id="contacts"></ul>
+    <div class="addrow">
+      <input type="text" id="cName" placeholder="Name" aria-label="Name">
+      <input type="text" id="cRole" placeholder="Sponsor, friend..." aria-label="Who they are">
+      <input type="tel" id="cPhone" placeholder="Phone number" aria-label="Phone number">
+      <button class="btn ghost" type="button" id="cAdd">Add</button>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div><p class="label">My gratitude</p><h2 class="h" style="margin:0">Things I'm grateful for</h2>
+    <p class="hint" style="margin-top:6px">A couple of yours are mixed into each day's list.</p></div>
+    <ul class="listedit" id="myGrat"></ul>
+    <div class="addrow"><input type="text" id="gNew" placeholder="Something I'm grateful for" aria-label="Something I'm grateful for"><button class="btn ghost" type="button" id="gAdd">Add</button></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div><p class="label">My reasons</p><h2 class="h" style="margin:0">Why I stay sober</h2>
+    <p class="hint" style="margin-top:6px">Mixed into each day's reasons, and shown when you're struggling.</p></div>
+    <ul class="listedit" id="myReasons"></ul>
+    <div class="addrow"><input type="text" id="rNew" placeholder="A reason to stay sober" aria-label="A reason to stay sober"><button class="btn ghost" type="button" id="rAdd">Add</button></div>
+  </section>
+
+  <footer>
+    <p style="margin:0" id="meStore"></p>
+    <p style="margin:0">In crisis? Call or text 988 any time, or call 911 if you're in danger.</p>
+  </footer>
+</section>
+</div>
+
+<!-- bottom tabs -->
+<nav class="tabs" aria-label="Sections">
+  <div class="tabs-in">
+    <button class="tab" data-tab="today" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Today</button>
+    <button class="tab" data-tab="journal" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5z"/><path d="M8 7h7M8 11h5"/></svg>Journal</button>
+    <button class="tab" data-tab="checkin" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>Check-in</button>
+    <button class="tab" data-tab="progress" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"/><path d="M5 15l4-4 3 3 7-7"/></svg>Progress</button>
+    <button class="tab" data-tab="me" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Me</button>
+  </div>
+</nav>
+
+<!-- ================= I'M STRUGGLING ================= -->
+<div class="overlay" id="sos" role="dialog" aria-modal="true" aria-labelledby="sosTitle" hidden>
+  <div class="overlay-in">
+    <div class="overlay-top"><p class="label" style="margin:0;color:var(--sos)">Right now</p><button class="x" type="button" id="sosClose" aria-label="Close">&times;</button></div>
+    <div class="sos-hero">
+      <h1 id="sosTitle">You reached for help instead of a drink. That matters.</h1>
+      <p>Most cravings rise, peak and fade within 15 to 30 minutes. You don't have to beat it forever. You only have to get through this one.</p>
+    </div>
+
+    <section>
+      <p class="label">Ride the wave</p>
+      <h2 class="h">Breathe with the circle for 10 minutes</h2>
+      <div class="pacer">
+        <div class="breath" id="sosBreath"><span id="sosBreathTxt">Ready</span></div>
+        <div class="clock" id="sosClock">10:00</div>
+        <button class="btn" type="button" id="sosStart">Start</button>
+        <p class="hint" style="margin:0;text-align:center;max-width:44ch">Notice where you feel the craving in your body. Watch it like a wave: it builds, crests and falls. You don't have to act on it.</p>
+      </div>
+    </section>
+
+    <section>
+      <p class="label">HALT check</p>
+      <h2 class="h">Am I hungry, angry, lonely or tired?</h2>
+      <div class="halt" id="halt"></div>
+      <ul class="halt-tips" id="haltTips"></ul>
+    </section>
+
+    <section>
+      <p class="label">Play the tape forward</p>
+      <h2 class="h">If I drink now, what happens next?</h2>
+      <ol class="tape">
+        <li>One hour from now, where am I and how do I feel?</li>
+        <li>Tonight, would I stop at one? What happened last time?</li>
+        <li>Tomorrow morning, who would I have to face or tell?</li>
+        <li>What would I lose that I've worked hard for?</li>
+      </ol>
+      <p class="hint" style="margin-top:16px">My reasons to stay sober:</p>
+      <ul id="sosReasons" style="margin:8px 0 0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-family:var(--display);font-size:1.08rem"></ul>
+    </section>
+
+    <section>
+      <p class="label">Reach out</p>
+      <h2 class="h">Pick up the phone before the drink</h2>
+      <ul class="people" id="sosPeople"></ul>
+      <ul class="people" style="margin-top:8px">
+        <li><span class="contact"><strong>Crisis line (Canada &amp; US)</strong><small>Call or text, any hour</small></span><span class="row"><span class="num">988</span><button class="linkbtn" type="button" data-copy="988">Copy</button></span></li>
+        <li><span class="contact"><strong>Online AA meetings</strong><small>Running around the clock</small></span><a href="https://aa-intergroup.org/meetings/" target="_blank" rel="noopener">Find one</a></li>
+        <li><span class="contact"><strong>Meetings near me</strong><small>aa.org meeting finder</small></span><a href="https://www.aa.org/find-aa" target="_blank" rel="noopener">Find one</a></li>
+      </ul>
+    </section>
+
+    <section class="row">
+      <button class="btn" type="button" id="sosMade">I got through it</button>
+      <button class="btn ghost" type="button" id="sosWrite">Write it out in my journal</button>
+    </section>
+  </div>
+</div>
+
+<!-- ================= MORNING REHEARSAL ================= -->
+<div class="overlay" id="reh" role="dialog" aria-modal="true" aria-labelledby="rehTitle" hidden>
+  <div class="overlay-in">
+    <div class="overlay-top"><p class="label" style="margin:0" id="rehTitle">Morning rehearsal</p><button class="x" type="button" id="rehClose" aria-label="Close">&times;</button></div>
+    <div class="pacer" style="gap:22px">
+      <div class="breath" id="rehBreath"><span id="rehBreathTxt">Ready</span></div>
+      <p class="rehearse-step" id="rehStep">Find a comfortable seat. When you're ready, tap Begin.</p>
+      <div class="steps-dots" id="rehDots"></div>
+      <div class="clock" id="rehClock">3:00</div>
+      <button class="btn" type="button" id="rehStart">Begin</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+// =============== CONTENT ===============
+const QUOTES = [
+  ["Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts.","Marcus Aurelius","Meditations"],
+  ["The universe is change; our life is what our thoughts make it.","Marcus Aurelius","Meditations"],
+  ["Look within. Within is the fountain of good, and it will ever bubble up, if you will ever dig.","Marcus Aurelius","Meditations"],
+  ["No longer talk at all about the kind of man that a good man ought to be, but be such.","Marcus Aurelius","Meditations"],
+  ["If you are pained by any external thing, it is not this thing that disturbs you, but your own judgement about it.","Marcus Aurelius","Meditations"],
+  ["While we are postponing, life speeds by.","Seneca","Letters to Lucilius"],
+  ["We are more often frightened than hurt; and we suffer more from imagination than from reality.","Seneca","Letters to Lucilius"],
+  ["It is not because things are difficult that we do not dare; it is because we do not dare that they are difficult.","Seneca","Letters to Lucilius"],
+  ["Men are disturbed not by things, but by the views which they take of things.","Epictetus","Enchiridion"],
+  ["Some things are in our control and others not.","Epictetus","Enchiridion"],
+  ["First say to yourself what you would be; and then do what you have to do.","Epictetus","Discourses"],
+  ["No man is free who is not master of himself.","Epictetus","Fragments"],
+  ["A journey of a thousand miles begins with a single step.","Lao Tzu","Tao Te Ching"],
+  ["He who knows others is wise; he who knows himself is enlightened.","Lao Tzu","Tao Te Ching"],
+  ["To see what is right and not to do it is want of courage.","Confucius","Analects"],
+  ["When you have faults, do not fear to abandon them.","Confucius","Analects"],
+  ["The unexamined life is not worth living.","Socrates","Plato's Apology"],
+  ["The first and best victory is to conquer self.","Plato","Laws"],
+  ["We become just by doing just acts, temperate by doing temperate acts, brave by doing brave acts.","Aristotle","Nicomachean Ethics"],
+  ["Character is destiny.","Heraclitus","Fragments"],
+  ["All that we are is the result of what we have thought.","The Buddha","Dhammapada"],
+  ["Health is the greatest of gifts, contentedness the greatest of riches.","The Buddha","Dhammapada"],
+  ["Life can only be understood backwards; but it must be lived forwards.","Søren Kierkegaard","Journals"],
+  ["He who has a why to live can bear almost any how.","Friedrich Nietzsche","Twilight of the Idols"],
+  ["All the unhappiness of men arises from one single fact, that they cannot stay quietly in their own chamber.","Blaise Pascal","Pensées"],
+  ["Who looks outside, dreams; who looks inside, awakes.","Carl Jung","Letter, 1916"],
+  ["Everything that irritates us about others can lead us to an understanding of ourselves.","Carl Jung","Memories, Dreams, Reflections"],
+  ["One does not become enlightened by imagining figures of light, but by making the darkness conscious.","Carl Jung","Alchemical Studies"]
+];
+const AFFIRMATIONS = [
+  "Just for today, I will not drink.","I am enough, sober and just as I am.","I don't have to do this alone.",
+  "I can feel a craving and let it pass without acting on it.","I am the one who notices my thoughts. I am bigger than any of them.",
+  "My mind is warning me again. I can thank it and choose my own direction.","I let go of what I cannot control and put my energy where I can.",
+  "Every sober choice strengthens a new pathway in my brain.","I am becoming the person my recovery is making room for.",
+  "Honesty is the ground I stand on today.","I can sit with discomfort. It is not danger.","My past explains me. It does not define me.",
+  "I am worthy of a clear, peaceful life.","I show up for the people who matter to me.","Progress, not perfection, is enough.",
+  "I can ask for help, and asking is strength.","I face my shadow with curiosity instead of shame.","Today I act from my values, not my urges.",
+  "I have survived every hard day so far.","Peace is available to me in this breath.","I trust the slow, steady work of recovery.",
+  "When I slip in thought or action, I begin again.","I choose thoughts that open my life rather than close it.","I deserve the kindness I give to others.",
+  "I am rebuilding trust, one kept promise at a time.","I don't need a drink to feel what I feel.","My higher power, as I understand it, is with me today.",
+  "I can be useful to someone today.","Serenity grows every time I accept what is.","I am proud of how far I've come."
+];
+const GRATITUDE = [
+  "Waking up with a clear head","Remembering everything about last night","The people in the rooms who understand",
+  "My sponsor's voice on the other end of the phone","Another 24 hours of sobriety","Time spent with my kids","Hot coffee and a quiet morning",
+  "Being trusted again","The strength in my own hands","Moving water and fresh air","My body healing a little more each day",
+  "Money going to things that matter","A good night's sleep","Honest conversations","The chance to make amends","My counsellor's support",
+  "Laughing without anything in my system","Being present for a small, ordinary moment","The meetings that are always there","Food that tastes good",
+  "A roof over my head","Skills I've built over the years","Someone who reached out to me","The chance to help a newcomer",
+  "Feeling my feelings instead of numbing them","Mornings without regret","The trees and mountains around me","Work that gives my day shape",
+  "Friends who knew me before and stayed","A second chance I didn't expect","Having choices again"
+];
+const REFLECTIONS = [
+  ["Only today","Tomorrow's cravings and yesterday's regrets aren't mine to carry right now. Today asks one thing: stay sober until bedtime. That is small enough to do.","What is the one thing I need to do today to stay sober?"],
+  ["Admitting it","There's relief in dropping the argument. When I stopped trying to prove I could manage it, I finally had room to get better.","Where am I still trying to manage what I can't?"],
+  ["HALT","Hungry, angry, lonely, tired. Most of my worst moments started with one of these being ignored. Checking in costs nothing.","Which of the four am I closest to right now, and what would help?"],
+  ["Resentment","Holding a grudge feels like strength but works like poison. I can name the hurt, look at my part, and set the rest down.","Who am I carrying a resentment toward, and what was my part?"],
+  ["Willingness","I don't need to feel ready. I only need to be willing to take the next right action while the fear comes along.","What am I willing to do today, even if I don't feel like it?"],
+  ["The observer","Thoughts about drinking will come. I am the one who sees them come and go. I don't have to follow each one out the door.","What thought has been loudest lately, and can I just notice it?"],
+  ["Honesty","Recovery doesn't run on perfect honesty. It runs on a little more honesty than yesterday.","Is there something small I haven't been honest about?"],
+  ["Asking for help","For years I believed needing people was weakness. Now I see that picking up the phone is one of the bravest things I do.","Who could I reach out to today, just to connect?"],
+  ["Service","When I help another person, my own problems get quieter. Service isn't a duty. It is part of what keeps me well.","How can I be useful to someone today?"],
+  ["Gratitude as action","Gratitude isn't just a feeling. It shows up in how I treat people, how I work, and how I care for my body.","How can I show gratitude with an action today?"],
+  ["The shadow","The parts of me I'm ashamed of don't go away when I hide them. They get smaller when I look at them in the light with someone I trust.","What part of myself have I been avoiding looking at?"],
+  ["Making amends","Amends aren't about being forgiven. They're about cleaning my side of the street so I can walk it with my head up.","Is there a relationship where I owe a sincere amends?"],
+  ["Patience","The body and brain heal slower than I want. But they do heal. Each sober day is repair work, even when I can't see it.","Where do I need more patience with myself?"],
+  ["Acceptance","Fighting what already happened keeps me stuck in it. Accepting it doesn't mean I like it. It means I can move.","What am I fighting that I could accept today?"],
+  ["Rehearsing the new self","Each morning I can picture the person I'm becoming: calm, honest, present. Rehearsing it makes it familiar, and familiar becomes real.","Picture yourself tonight after a good sober day. What did you do?"],
+  ["Emotional sobriety","Putting down the drink was the start. Learning to feel anger, fear and grief without running is the deeper work.","What feeling have I been avoiding, and can I let it be here for a moment?"],
+  ["Values as a compass","When I don't know what to do, I can ask what the person I want to be would do. My values point the way even in fog.","Which value do I most want to live by today?"],
+  ["Slips of the mind","Romancing the drink is sneaky. I remember the first one and forget the rest. Playing the tape all the way through tells the truth.","If I play the tape forward, where does one drink end?"],
+  ["Humility","Humility isn't thinking less of myself. It is seeing myself accurately, strengths and flaws together, and staying teachable.","What can I learn from someone else today?"],
+  ["Fellowship","In a room of people who understand, my story stops being a secret and starts being useful.","When is my next meeting, and will I share?"],
+  ["Small wins","Made the bed. Kept a promise. Didn't drink. Recovery is built out of days like this, and they count.","What small win can I notice from yesterday?"],
+  ["Letting go","I can make my plans and do my part, then let the outcome go. Not everything is mine to fix.","What outcome am I gripping too tightly?"],
+  ["Committed action","Motivation comes and goes. Commitment is what I do on the days it doesn't show up.","What commitment will I keep today no matter how I feel?"],
+  ["Self-forgiveness","I can hold myself accountable without punishing myself forever. Shame keeps me sick; responsibility helps me heal.","What would it look like to forgive myself a little today?"],
+  ["Present moment","Right now there's no drink in my hand, and I'm okay. This moment is manageable. So is the next one.","What do I notice around me, right here, right now?"]
+];
+const REASONS = [
+  "My kids get a father who is present and remembers.","I wake up without dread or shame.","People can trust my word again.",
+  "My mind is sharp enough to do work I'm proud of.","My body is healing, and I can feel it.","I can drive anywhere, any time, without worry.",
+  "My money goes to my life, not to a bottle.","I'm there for the moments that matter.","I get to feel real joy, not borrowed joy.",
+  "I no longer have to hide or keep track of lies.","My sleep is real rest.","I can handle hard things and find out I'm stronger than I thought.",
+  "I'm setting an example my family can be proud of.","Every sober day adds to the life I'm building.","I remember conversations, promises and good times.",
+  "I have a chance to help someone else who is where I was.","My relationships can grow instead of just survive.","I get to be the real me, not the drinking me.",
+  "Anxiety and low moods ease when I'm not drinking.","I don't want to start over at day one.","My future self is counting on today's choice.",
+  "Drinking never solved one problem. It only added more.","I can be outside at dawn, clear-headed, enjoying it.","Freedom from the obsession is worth everything.",
+  "I've worked too hard to give this away for one night.","I promised myself a better life, and I'm keeping that promise.",
+  "Sobriety gave me back my self-respect.","I want to be fully alive for whatever comes next."
+];
+const VALUES = ["Acceptance","Adventure","Assertiveness","Authenticity","Caring","Compassion","Connection","Contribution","Cooperation","Courage","Creativity","Curiosity","Encouragement","Excitement","Fairness","Fitness","Flexibility","Freedom","Friendliness","Forgiveness","Fun and humour","Gratitude","Honesty","Industry","Intimacy","Kindness","Love","Mindfulness","Order","Persistence","Respect","Responsibility","Safety","Pleasure","Skillfulness","Supportiveness","Trust"];
+const VALUE_PROMPTS = ["What's one small way I can live this today?","Where could this show up in my day, even briefly?","Who could I practise this with today?","What would this look like in my hardest moment today?"];
+const SCALES = [
+  {k:"mood",name:"Mood",labels:["Rough","Low","Okay","Good","Great"]},
+  {k:"craving",name:"Cravings",labels:["None","Mild","Some","Strong","Intense"],note:"lower is easier"},
+  {k:"sleep",name:"Sleep last night",labels:["Poor","Restless","Okay","Good","Great"]}
+];
+const EVENING = [
+  {k:"well",q:"What went well today?"},
+  {k:"fear",q:"Was I resentful, selfish, dishonest or afraid? Where?"},
+  {k:"amends",q:"Do I owe anyone an apology, or a kind word?"},
+  {k:"better",q:"What could I do differently tomorrow?"},
+  {k:"grateful",q:"What am I grateful for tonight?"}
+];
+const HALT = [
+  {k:"h",l:"H",n:"Hungry",tip:"Eat something now, even small. Low blood sugar can feel a lot like a craving."},
+  {k:"a",l:"A",n:"Angry",tip:"Name it out loud or write it down. Then move your body: a fast walk, a few flights of stairs."},
+  {k:"l",l:"L",n:"Lonely",tip:"Call or text someone on your list below, or drop into an online meeting. Connection is the opposite of addiction."},
+  {k:"t",l:"T",n:"Tired",tip:"Rest is allowed. Lie down for 20 minutes, or plan an early night. Everything feels bigger when you're exhausted."}
+];
+const REHEARSAL = [
+  "Settle in. Let your shoulders drop. Breathe with the circle.",
+  "Notice your feet on the floor and the air on your skin. You are here, and you are sober.",
+  "Picture yourself waking up tomorrow with a clear head. Feel the relief of that in your body.",
+  "See yourself meeting today's hardest moment calmly. You pause, you breathe, you choose.",
+  "Feel gratitude now, as if the good day has already happened. Let it fill your chest.",
+  "Choose one word for today. Carry it with you as you get up."
+];
+
+// =============== HELPERS ===============
+const $=id=>document.getElementById(id);
+function dayNumber(d){return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000)}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function pick(arr,n,seed){const r=rng(seed),a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,n)}
+function cyc(arr,day,step){return arr[((day*step)%arr.length+arr.length)%arr.length]}
+function fmt(n,opts){return new Date(n*86400000).toLocaleDateString(undefined,Object.assign({weekday:"long",month:"long",day:"numeric",timeZone:"UTC"},opts||{}))}
+function fmtShort(n){return new Date(n*86400000).toLocaleDateString(undefined,{month:"short",day:"numeric",timeZone:"UTC"})}
+function dateStrToDay(s){if(!s)return null;const [y,m,d]=s.split("-").map(Number);if(!y||!m||!d)return null;return Math.floor(Date.UTC(y,m-1,d)/86400000)}
+function addMonths(day,n){const d=new Date(day*86400000);const t=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+n,d.getUTCDate()));return Math.floor(t/86400000)}
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+function toast(msg){const el=$("toast");el.textContent=msg;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,2400)}
+function copyText(txt,done){const ok=()=>toast(done||"Copied");const fb=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");ok()}catch(e){toast("Select the text and copy it yourself")}ta.remove()};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,fb)}else fb()}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+const todayN=dayNumber(new Date());
+function weekStart(day){const dow=(new Date(day*86400000).getUTCDay()+6)%7;return day-dow} // Monday
+
+// =============== DATA LAYER ===============
+// Everything lives in the viewer's private space when available, otherwise in this browser.
+const S={mode:"loading",profile:{},entries:[],checkins:{},weekly:{}};
+const W={}; // per-document write queue
+function queue(k,fn){const p=(W[k]||Promise.resolve()).catch(()=>{}).then(fn);W[k]=p;return p}
+let REF=null;
+function localLoad(){
+  const j=k=>{try{return JSON.parse(ls.get(k)||"null")}catch(e){return null}};
+  S.profile=j("od-profile")||{};
+  if(!S.profile.soberDate&&ls.get("soberDate"))S.profile.soberDate=ls.get("soberDate");
+  S.entries=(j("journal-entries")||[]).concat(oldNotes());
+  S.checkins=j("od-checkins")||{};
+  S.weekly=j("od-weekly")||{};
+}
+function localSave(what){
+  const ok=what==="profile"?ls.set("od-profile",JSON.stringify(S.profile))
+   :what==="entries"?ls.set("journal-entries",JSON.stringify(S.entries.filter(e=>!e.legacy)))
+   :what==="checkins"?ls.set("od-checkins",JSON.stringify(S.checkins))
+   :ls.set("od-weekly",JSON.stringify(S.weekly));
+  if(!ok&&!localSave.warned){localSave.warned=true;toast("This browser won't keep your data after you close it.")}
+}
+function oldNotes(){const out=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i),m=/^journal-(\d+)$/.exec(k);if(m){const v=localStorage.getItem(k);if(v&&v.trim())out.push({id:"legacy"+m[1],text:v.trim(),day:+m[1],createdAt:+m[1]*86400000+43200000,via:"typed",legacy:true})}}}catch(e){}return out}
+
+const Data={
+  async saveProfile(patch){
+    S.profile=Object.assign({},S.profile,patch);changed("profile");
+    if(S.mode==="db"){const body=JSON.parse(JSON.stringify(S.profile));return queue("profile",()=>REF.profile.set(body))}
+    localSave("profile");
+  },
+  async saveCheckin(day,patch){
+    const key="d"+day;const cur=Object.assign({day},S.checkins[key]||{},patch,{updatedAt:Date.now()});
+    S.checkins=Object.assign({},S.checkins,{[key]:cur});changed("checkins");
+    if(S.mode==="db"){const body=JSON.parse(JSON.stringify(cur));return queue(key,()=>REF.checkins.doc(key).set(body))}
+    localSave("checkins");
+  },
+  async saveEntry(e){
+    if(S.mode==="db"){return queue(e.id,()=>REF.entries.doc(e.id).set({text:e.text,day:e.day,createdAt:e.createdAt,via:e.via}))}
+    S.entries=S.entries.concat([e]);localSave("entries");changed("entries");
+  },
+  async setEntryAI(id,ai){
+    const e=S.entries.find(x=>x.id===id);if(e)e.ai=ai;
+    if(S.mode==="db"){
+      if(id.startsWith("legacy")){return queue(id,()=>REF.entries.doc(id).set({text:e.text,day:e.day,createdAt:e.createdAt,via:"typed",ai}))}
+      return queue(id,()=>REF.entries.doc(id).update({ai}))}
+    if(e&&e.legacy){e.legacy=false;ls.del("journal-"+e.day)}
+    localSave("entries");
+  },
+  async deleteEntry(id){
+    if(S.mode==="db"){return queue(id,()=>REF.entries.doc(id).delete())}
+    const e=S.entries.find(x=>x.id===id);if(e&&e.legacy)ls.del("journal-"+e.day);
+    S.entries=S.entries.filter(x=>x.id!==id);localSave("entries");changed("entries");
+  },
+  async saveWeekly(key,obj){
+    S.weekly=Object.assign({},S.weekly,{[key]:obj});changed("weekly");
+    if(S.mode==="db"){return queue(key,()=>REF.weekly.doc(key).set(obj))}
+    localSave("weekly");
+  }
+};
+
+let profileLoaded=false;
+async function initData(){
+  let db=null,uid=null;
+  try{if(window.claude&&claude.use){db=await claude.use("db");const user=await claude.use("user");uid=user?await user.id():null}}catch(e){}
+  if(!db||!uid){useLocalData();return}
+  const profile=db.doc("data/users/"+uid+"/profile");
+  REF={profile,entries:db.collection("data/users/"+uid),checkins:profile.collection("checkins"),weekly:profile.collection("weekly")};
+  S.mode="db";
+  let failed=false;const fail=()=>{if(!failed){failed=true;useLocalData()}};
+  profile.onSnapshot(snap=>{
+    if(S.mode!=="db")return;
+    const first=!profileLoaded;profileLoaded=true;
+    S.profile=snap.exists?Object.assign({},snap.data()):{};
+    if(first)migrateLocal();
+    changed("profile");
+  },fail);
+  REF.entries.orderBy("createdAt","desc").limit(500).onSnapshot(snap=>{
+    if(S.mode!=="db")return;
+    S.entries=snap.docs.filter(d=>/^(j|legacy)/.test(d.id)).map(d=>Object.assign({id:d.id},d.data()));changed("entries");
+  },fail);
+  REF.checkins.orderBy("day","desc").limit(400).onSnapshot(snap=>{
+    if(S.mode!=="db")return;
+    const m={};snap.docs.forEach(d=>m[d.id]=d.data());S.checkins=m;changed("checkins");
+  },fail);
+  REF.weekly.onSnapshot(snap=>{
+    if(S.mode!=="db")return;
+    const m={};snap.docs.forEach(d=>m[d.id]=d.data());S.weekly=m;changed("weekly");
+  },fail);
+  $("storeNote").textContent=$("meStore").textContent="Private to you, and synced wherever you open this app signed in.";
+}
+function useLocalData(){
+  S.mode="local";localLoad();
+  $("storeNote").textContent=$("meStore").textContent="Saved in this browser only.";
+  changed("all");
+}
+async function migrateLocal(){
+  // carry over anything saved in this browser by earlier versions
+  const patch={};const p=S.profile;
+  const sd=ls.get("soberDate");if(sd&&!p.soberDate)patch.soberDate=sd;
+  if(Object.keys(patch).length){try{await Data.saveProfile(patch);ls.del("soberDate")}catch(e){}}
+  for(const n of oldNotes()){try{await REF.entries.doc("legacy"+n.day).set({text:n.text,day:n.day,createdAt:n.createdAt,via:"typed"});ls.del("journal-"+n.day)}catch(e){}}
+  try{const old=JSON.parse(ls.get("journal-entries")||"[]");for(const e of old){await REF.entries.doc(e.id).set({text:e.text,day:e.day,createdAt:e.createdAt,via:e.via||"typed",...(e.ai?{ai:e.ai}:{})})}if(old.length)ls.del("journal-entries")}catch(e){}
+}
+
+// =============== RENDER ORCHESTRATION ===============
+let tab="today";
+function changed(what){
+  renderHeader();
+  if(what==="profile"||what==="all"){renderToday();renderMe();renderCheckin();}
+  if(what==="checkins"||what==="all"){renderToday(true);renderCheckin();}
+  if(what==="entries"||what==="all"){renderEntries();}
+  if(what==="weekly"||what==="all"){renderWeekly();}
+  if(tab==="progress")renderProgress();
+}
+function soberDays(day){const s=dateStrToDay(S.profile.soberDate);if(s==null)return null;return (day==null?todayN:day)-s}
+function renderHeader(){
+  const n=soberDays();
+  $("daycount").innerHTML=n==null?"":n<=0?"<b>Day one</b>":"<b>"+n.toLocaleString()+"</b> "+(n===1?"day":"days");
+}
+
+// tabs
+function showTab(t){
+  tab=t;
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===t?"page":"false"));
+  ["today","journal","checkin","progress","me"].forEach(k=>$("v-"+k).hidden=k!==t);
+  if(t==="progress")renderProgress();
+  if(t==="me")renderMe(true);
+  if(t==="checkin")renderCheckin(true);
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+// =============== TODAY ===============
+let current=todayN;
+function mixed(own,builtin,n,seed,ownMax){
+  const o=pick(own||[],Math.min(ownMax,(own||[]).length),seed+11).map(t=>({t,mine:true}));
+  const b=pick(builtin,n-o.length,seed).map(t=>({t,mine:false}));
+  return pick(o.concat(b),n,seed+5);
+}
+function renderToday(onlyValue){
+  const diff=current-todayN;
+  if(!onlyValue){
+    const q=cyc(QUOTES,current,11);
+    $("quote").textContent=q[0];
+    $("quoteBy").innerHTML="<b>"+esc(q[1])+"</b> · <span>"+esc(q[2])+"</span>";
+    $("aff").innerHTML="";pick(AFFIRMATIONS,5,current*3+1).forEach(t=>{const li=document.createElement("li");li.textContent=t;$("aff").appendChild(li)});
+    $("grat").innerHTML="";mixed(S.profile.myGratitude,GRATITUDE,5,current*5+2,2).forEach((g,i)=>{const li=document.createElement("li");li.innerHTML='<label><input type="checkbox" id="g'+i+'"><span></span></label>';li.querySelector("span").textContent=g.t;if(g.mine)li.querySelector("span").insertAdjacentHTML("beforeend",'<span class="mine">mine</span>');$("grat").appendChild(li)});
+    const r=cyc(REFLECTIONS,current,7);
+    $("refTitle").textContent=r[0];$("refBody").textContent=r[1];$("refAsk").textContent=r[2];
+    $("jPrompt").textContent="Today's prompt: "+cyc(REFLECTIONS,todayN,7)[2];
+    $("reasons").innerHTML="";mixed(S.profile.myReasons,REASONS,5,current*7+3,2).forEach(x=>{const li=document.createElement("li");li.textContent=x.t;if(x.mine)li.insertAdjacentHTML("beforeend",'<span class="mine">mine</span>');$("reasons").appendChild(li)});
+    $("dateLabel").textContent=fmt(current);
+    $("dayKicker").textContent=diff===0?"Today":diff===-1?"Yesterday":diff===1?"Tomorrow":(diff<0?(-diff)+" days ago":"In "+diff+" days");
+    $("toToday").hidden=diff===0;
+    $("rehearseOpen").hidden=diff!==0;
+  }
+  // value of the day
+  const box=$("valueBox");
+  if(box.contains(document.activeElement))return;
+  const vals=S.profile.values||[];
+  if(!vals.length){
+    box.innerHTML='<div class="value-card"><p style="margin:0">Choose the values that matter most to you, and one will guide each day here.</p><div><button class="btn ghost" type="button" id="goValues">Choose my values</button></div></div>';
+    $("goValues").onclick=()=>{showTab("me");setTimeout(()=>$("valChips").scrollIntoView({block:"center"}),50)};
+    return;
+  }
+  const v=cyc(vals,current,1);const ci=S.checkins["d"+current]||{};
+  box.innerHTML='<div class="value-card"><p class="value-name"></p><label class="field"><span></span><input type="text" id="valueAction" placeholder="e.g. Call my sister and really listen"></label></div>';
+  box.querySelector(".value-name").textContent=v;
+  box.querySelector(".field>span").textContent=cyc(VALUE_PROMPTS,current,1);
+  const inp=$("valueAction");inp.value=ci.valueAction||"";
+  inp.addEventListener("change",()=>{const val=inp.value.trim();if(val!==(ci.valueAction||""))Data.saveCheckin(current,{valueAction:val,value:v}).then(()=>toast("Saved"),()=>toast("Couldn't save that. Try again."))});
+}
+$("prev").onclick=()=>{current--;renderToday()};
+$("next").onclick=()=>{current++;renderToday()};
+$("toToday").onclick=()=>{current=todayN;renderToday()};
+$("toJournal").onclick=()=>{showTab("journal");setTimeout(()=>$("entryText").focus(),100)};
+$("copy").onclick=()=>{
+  const q=cyc(QUOTES,current,11),r=cyc(REFLECTIONS,current,7);
+  const list=id=>[...$(id).querySelectorAll("li")].map(li=>"- "+li.textContent.replace(/mine$/,"").trim()).join("\n");
+  copyText(fmt(current)+"\n\n“"+q[0]+"”\n— "+q[1]+"\n\nAffirmations\n"+list("aff")+"\n\nGratitude\n"+list("grat")+"\n\nReflection: "+r[0]+"\n"+r[1]+"\n"+r[2]+"\n\nWhy I stay sober\n"+list("reasons")+"\n\nJust for today, I choose sobriety.");
+};
+
+// =============== JOURNAL ===============
+let voiceUsed=false,draftTimer,sampleFn=null,aiResolved=false;
+const aiState={};
+const LEAF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c-4-3-7-6.5-7-10.5A7 7 0 0 1 12 3.5a7 7 0 0 1 7 7c0 4-3 7.5-7 10.5z"/><path d="M12 8v13"/></svg>';
+try{const v=ls.get("ai-auto");if(v!==null)$("aiAuto").checked=v==="1"}catch(e){}
+$("aiAuto").addEventListener("change",()=>ls.set("ai-auto",$("aiAuto").checked?"1":"0"));
+$("entryText").value=ls.get("journal-draft")||"";
+$("entryText").addEventListener("input",()=>{clearTimeout(draftTimer);draftTimer=setTimeout(()=>ls.set("journal-draft",$("entryText").value),400)});
+function timeOf(ts){return new Date(ts).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}
+
+function renderEntries(){
+  const box=$("entries");box.innerHTML="";
+  const list=S.entries.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  if(!list.length){box.innerHTML='<p class="empty">No entries yet. Your saved entries will show up here, newest first.</p>';return}
+  const groups=new Map();list.forEach(e=>{if(!groups.has(e.day))groups.set(e.day,[]);groups.get(e.day).push(e)});
+  groups.forEach((items,day)=>{
+    const g=document.createElement("div");
+    const h=document.createElement("h3");h.textContent=day===todayN?"Today":day===todayN-1?"Yesterday":fmt(day);g.appendChild(h);
+    const col=document.createElement("div");col.style.cssText="display:flex;flex-direction:column;gap:18px";
+    items.forEach(e=>{
+      const el=document.createElement("article");el.className="entry";
+      el.innerHTML='<div class="meta"><span class="t"></span><span class="src"></span><button class="del" type="button">Delete</button></div><p></p>';
+      el.querySelector(".t").textContent=timeOf(e.createdAt);
+      el.querySelector(".src").textContent=e.via==="voice"?"spoken":"";
+      el.querySelector("p").textContent=e.text;
+      const del=el.querySelector(".del");
+      del.onclick=async()=>{
+        if(!del.classList.contains("confirm")){del.classList.add("confirm");del.textContent="Tap again to delete";setTimeout(()=>{del.classList.remove("confirm");del.textContent="Delete"},4000);return}
+        try{await Data.deleteEntry(e.id);toast("Entry deleted")}catch(err){toast("Couldn't delete that entry. Try again.")}
+      };
+      el.appendChild(aiBlock(e));col.appendChild(el);
+    });
+    g.appendChild(col);box.appendChild(g);
+  });
+}
+function splitReply(t){
+  const m=/\n\s*\**\s*AFFIRMATIONS\s*:?\s*\**\s*\n/i.exec(t);
+  if(!m)return{body:t.trim(),affs:[]};
+  const affs=t.slice(m.index+m[0].length).split("\n").map(l=>l.replace(/^\s*([-*•]|\d+[.)])\s*/,"").trim()).filter(Boolean).slice(0,5);
+  return{body:t.slice(0,m.index).trim(),affs};
+}
+function aiBlock(e){
+  const wrap=document.createElement("div");wrap.dataset.ai=e.id;
+  const st=aiState[e.id],saved=e.ai&&e.ai.text;
+  if(!st&&!saved){
+    if(!sampleFn)return wrap;
+    const b=document.createElement("button");b.type="button";b.className="ask-ai";b.innerHTML=LEAF+"<span>Get a caring response</span>";
+    b.onclick=()=>askAI(e);wrap.appendChild(b);return wrap;
+  }
+  const box=document.createElement("div");box.className="ai";
+  box.innerHTML='<div class="ai-head">'+LEAF+'<span>A response for you</span></div><div class="ai-body"></div><ul class="ai-aff" hidden></ul><div class="ai-foot"></div>';
+  wrap.appendChild(box);fillAI(wrap,e);return wrap;
+}
+function fillAI(wrap,e){
+  const box=wrap.querySelector(".ai");if(!box)return;
+  const st=aiState[e.id];const body=box.querySelector(".ai-body"),ul=box.querySelector(".ai-aff"),foot=box.querySelector(".ai-foot");
+  foot.innerHTML="";
+  const text=st?st.text:"";const parts=splitReply(text||"");
+  const affs=st?parts.affs:((e.ai&&e.ai.affirmations)||[]);
+  if(st&&st.status==="thinking"&&!text){body.className="ai-body thinking";body.textContent="Reading your entry and thinking it over…"}
+  else{body.className="ai-body";body.textContent=st?parts.body:(e.ai?e.ai.text:"")}
+  ul.innerHTML="";affs.forEach(a=>{const li=document.createElement("li");li.textContent=a;ul.appendChild(li)});ul.hidden=!affs.length;
+  if(st&&(st.status==="thinking"||st.status==="streaming")){
+    const stop=document.createElement("button");stop.type="button";stop.className="linkbtn";stop.textContent="Stop";stop.onclick=()=>st.ctl&&st.ctl.abort();foot.appendChild(stop);
+  }else if(st&&st.status==="error"){
+    const p=document.createElement("p");p.className="ai-err";p.textContent=st.msg;foot.appendChild(p);
+    if(st.retry){const r=document.createElement("button");r.type="button";r.className="linkbtn";r.textContent="Try again";r.onclick=()=>askAI(e,true);foot.appendChild(r)}
+  }else if(sampleFn){
+    const r=document.createElement("button");r.type="button";r.className="linkbtn";r.textContent="Ask for a different response";r.onclick=()=>askAI(e,true);foot.appendChild(r);
+  }
+}
+function refreshAI(e){const w=document.querySelector('[data-ai="'+e.id+'"]');if(w&&w.querySelector(".ai"))fillAI(w,e);else renderEntries()}
+function entryPrompt(e){
+  const r=cyc(REFLECTIONS,e.day,7);
+  return [
+"You are responding to a private journal entry written by a person in recovery from alcohol use who works a 12-step program and sees a counsellor. Write as a warm, caring, experienced psychologist would speak to a client they respect: calm, human, never preachy or clinical.",
+"","Guidelines:",
+"- Start by reflecting back what you hear in their own words, so they feel understood. Notice and name the feelings underneath.",
+"- Validate before anything else. Acknowledge real effort and courage, specifically, not with generic praise.",
+"- Where it fits naturally, draw lightly on Acceptance and Commitment Therapy (acceptance, noticing thoughts as thoughts, present moment, the observing self, values, committed action) and on recovery ideas like one day at a time. Never lecture or name-drop theories.",
+"- Offer at most one gentle question to sit with or one small, doable next step for today.",
+"- Do not diagnose, do not give medical advice, and do not invent facts about their life beyond what they wrote.",
+"- If the entry mentions cravings, wanting to drink, a relapse, or feeling unsafe: respond without judgment, and gently encourage reaching out today to their sponsor, a meeting, or their counsellor. If there is any hint of self-harm, suicide or danger, warmly but clearly encourage them to call or text 988 (Suicide Crisis Helpline in Canada and the US) or call 911 now, and keep the rest short.",
+"- Keep it to about 120 to 180 words, in two or three short paragraphs. Plain language. Speak directly to them as \"you\". No headings, no bullet points, no sign-off.",
+"","Then, on its own line, write exactly: AFFIRMATIONS:",
+"Then three short first-person affirmations (\"I ...\"), one per line, each starting with \"- \", written specifically for what they shared today.",
+"","Today's reflection prompt they may be answering: \""+r[2]+"\"","","Their journal entry:","\"\"\"",e.text.slice(0,8000),"\"\"\""
+].join("\n");
+}
+const ERR_MSG={rate_limited:"You've reached your limit for now. Try again a little later.",session_expired:"Please sign in to Claude again, then try again.",refused:"A response couldn't be written for this.",upstream_error:"The connection dropped before the response finished."};
+const OFF_CODES=["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
+function aiOff(){sampleFn=null;$("aiToggleRow").hidden=true;$("aiNote").hidden=true;renderEntries();renderWeekly();toast("AI responses are turned off for this view.")}
+async function askAI(e,fresh){
+  if(!sampleFn)return;
+  if(aiState[e.id]&&/thinking|streaming/.test(aiState[e.id].status))return;
+  const ctl=new AbortController();aiState[e.id]={status:"thinking",text:"",ctl};renderEntries();
+  try{
+    const res=await sampleFn(entryPrompt(e),{signal:ctl.signal,cache:fresh?false:true,onText:({text})=>{const st=aiState[e.id];if(!st)return;st.status="streaming";st.text=text;refreshAI(e)}});
+    const parts=splitReply(res.text);const ai={text:parts.body,affirmations:parts.affs,at:Date.now()};
+    delete aiState[e.id];
+    try{await Data.setEntryAI(e.id,ai)}catch(err){toast("The response couldn't be saved, but you can read it now.")}
+    renderEntries();
+  }catch(err){
+    const code=err&&err.code;
+    if(code==="cancelled"){delete aiState[e.id];renderEntries();return}
+    if(OFF_CODES.includes(code)){delete aiState[e.id];aiOff();return}
+    aiState[e.id]={status:"error",text:code==="refused"?"":(err&&err.text)||"",msg:ERR_MSG[code]||"Something went wrong writing the response.",retry:code!=="session_expired"};
+    renderEntries();
+  }
+}
+$("saveEntry").onclick=async()=>{
+  const text=$("entryText").value.trim();
+  if(!text){toast("Write or speak something first");$("entryText").focus();return}
+  if(listening)stopListening();
+  const e={id:"j"+Date.now()+Math.random().toString(36).slice(2,6),text,day:todayN,createdAt:Date.now(),via:voiceUsed?"voice":"typed"};
+  $("saveEntry").disabled=true;
+  try{
+    await Data.saveEntry(e);$("entryText").value="";ls.set("journal-draft","");voiceUsed=false;toast("Entry saved");
+    if(sampleFn&&$("aiAuto").checked)askAI(S.entries.find(x=>x.id===e.id)||e);
+  }catch(err){toast(err&&err.code==="quota_exceeded"?"Your journal is full. Delete some old entries to save new ones.":"Couldn't save. Your words are still in the box, so try again.")}
+  $("saveEntry").disabled=false;
+};
+$("clearEntry").onclick=()=>{$("entryText").value="";ls.set("journal-draft","");voiceUsed=false;$("interim").textContent=""};
+
+// voice
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,listening=false;
+const KEYBOARD_TIP="Tip: you can also tap the microphone on your phone's keyboard to dictate into the box.";
+$("voiceNote").textContent=SR?KEYBOARD_TIP:"Voice typing isn't supported in this browser. Tap the microphone on your phone's keyboard to dictate into the box instead.";
+if(!SR)$("mic").hidden=true;
+function insertText(txt){const ta=$("entryText");const v=ta.value;const sep=v&&!/\s$/.test(v)?" ":"";let t=txt.trim();if(!v.trim()||/[.!?]\s*$/.test(v))t=t.charAt(0).toUpperCase()+t.slice(1);ta.value=v+sep+t;voiceUsed=true;ta.scrollTop=ta.scrollHeight;ls.set("journal-draft",ta.value)}
+function setMic(on){listening=on;$("mic").classList.toggle("on",on);$("mic").setAttribute("aria-pressed",on);$("micLabel").textContent=on?"Stop":"Speak";$("entryText").classList.toggle("listening",on);if(!on)$("interim").textContent=""}
+function stopListening(){try{rec&&rec.stop()}catch(e){}setMic(false)}
+function startListening(){
+  rec=new SR();rec.lang=navigator.language||"en-CA";rec.continuous=true;rec.interimResults=true;
+  rec.onresult=ev=>{let interim="";for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];if(r.isFinal)insertText(r[0].transcript);else interim+=r[0].transcript}$("interim").textContent=interim?interim+"…":"Listening…"};
+  rec.onerror=ev=>{
+    if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){$("voiceNote").textContent="The microphone isn't available here. Tap the microphone on your phone's keyboard to dictate into the box instead, or type.";$("mic").hidden=true}
+    else if(ev.error==="no-speech"){$("voiceNote").textContent="I didn't hear anything. Tap Speak and try again. "+KEYBOARD_TIP}
+    else if(ev.error==="network"){$("voiceNote").textContent="Voice typing needs an internet connection. You can still type, or use your keyboard's microphone."}
+    setMic(false);
+  };
+  rec.onend=()=>{if(listening)setMic(false)};
+  try{rec.start();setMic(true);$("interim").textContent="Listening…"}catch(e){setMic(false);$("voiceNote").textContent="Couldn't start the microphone. "+KEYBOARD_TIP}
+}
+$("mic").onclick=()=>{listening?stopListening():startListening()};
+
+// weekly summary
+let wkWhich=0; // 0 this week, 1 last week
+let wkState=null; // {status,text,ctl,msg}
+$("wkThis").onclick=()=>{wkWhich=0;wkState&&wkState.ctl&&wkState.ctl.abort();wkState=null;renderWeekly()};
+$("wkLast").onclick=()=>{wkWhich=1;wkState&&wkState.ctl&&wkState.ctl.abort();wkState=null;renderWeekly()};
+function wkRange(){const s=weekStart(todayN)-7*wkWhich;return [s,s+6]}
+function renderSummaryText(el,text){
+  el.innerHTML="";el.className="summary";
+  text.split("\n").forEach(line=>{
+    const m=/^\s*#{1,4}\s*(.+?)\s*$/.exec(line);
+    if(m){const h=document.createElement("h4");h.textContent=m[1].replace(/\*\*/g,"");el.appendChild(h)}
+    else if(line.trim()){const p=document.createElement("p");p.textContent=line.replace(/\*\*/g,"");el.appendChild(p)}
+  });
+}
+function renderWeekly(){
+  $("wkThis").setAttribute("aria-pressed",wkWhich===0);$("wkLast").setAttribute("aria-pressed",wkWhich===1);
+  const [a,b]=wkRange();$("wkRange").textContent=fmtShort(a)+" to "+fmtShort(b);
+  const key="w"+a;const saved=S.weekly[key];
+  const out=$("wkOut"),act=$("wkActions");out.innerHTML="";act.innerHTML="";
+  if(wkState){
+    if(wkState.status==="thinking"&&!wkState.text){out.innerHTML='<p class="ai-body thinking" style="margin:0">Reading your week…</p>'}
+    else renderSummaryText(out,wkState.text||"");
+    if(wkState.status==="error"){const p=document.createElement("p");p.className="ai-err";p.textContent=wkState.msg;act.appendChild(p)}
+    else{const s=document.createElement("button");s.className="linkbtn";s.type="button";s.textContent="Stop";s.onclick=()=>wkState.ctl.abort();act.appendChild(s);return}
+  }else if(saved&&saved.text){
+    renderSummaryText(out,saved.text);
+    const c=document.createElement("button");c.className="btn";c.type="button";c.textContent="Copy summary";
+    c.onclick=()=>copyText("Week of "+fmtShort(a)+" to "+fmtShort(b)+"\n\n"+saved.text.replace(/^\s*#{1,4}\s*/gm,"").replace(/\*\*/g,""),"Summary copied");act.appendChild(c);
+  }
+  if(!sampleFn){if(!saved)out.innerHTML=aiResolved?'<p class="empty">Weekly summaries need AI, which isn\'t available in this view.</p>':'<p class="empty">Getting ready…</p>';return}
+  const g=document.createElement("button");g.type="button";g.className=saved?"btn ghost":"btn";g.textContent=saved?"Write it again":"Write this summary";
+  g.onclick=()=>writeWeekly(!!saved);act.appendChild(g);
+}
+async function writeWeekly(fresh){
+  const [a,b]=wkRange();
+  const ents=S.entries.filter(e=>e.day>=a&&e.day<=b).sort((x,y)=>x.createdAt-y.createdAt);
+  const cis=[];for(let d=a;d<=b;d++){const c=S.checkins["d"+d];if(c)cis.push(c)}
+  if(!ents.length&&!cis.length){toast("Nothing written or checked in that week yet.");return}
+  const lines=[];
+  cis.forEach(c=>{
+    const parts=[fmt(c.day,{weekday:"short"})+":"];
+    SCALES.forEach(s=>{if(c[s.k])parts.push(s.name+" "+c[s.k]+"/5 ("+s.labels[c[s.k]-1]+")")});
+    if(c.sober)parts.push(c.sober==="yes"?"stayed sober":"did not stay sober");
+    if(c.urges)parts.push(c.urges+" craving(s) ridden out");
+    if(c.value&&c.valueAction)parts.push("value "+c.value+": "+c.valueAction);
+    if(c.note)parts.push("note: "+c.note);
+    if(c.evening)EVENING.forEach(q=>{if(c.evening[q.k])parts.push(q.q+" "+c.evening[q.k])});
+    lines.push(parts.join(" | "));
+  });
+  const prompt=["You are helping a person in recovery from alcohol use prepare for their next counselling session. They work a 12-step program and their counsellor uses Acceptance and Commitment Therapy (ACT).",
+"Read their week below and write a short summary in the FIRST PERSON, as notes they could hand to their counsellor (\"This week I...\"). Be honest and specific, use their own words where helpful, and do not invent anything that isn't in the material. No diagnosis.",
+"Use exactly these five headings, each on its own line starting with '## ', followed by 1 to 4 short plain sentences or lines:",
+"## Themes","## Wins","## Hard moments","## Patterns I noticed (mood, cravings, sleep)","## What I'd like to talk about",
+"Keep the whole thing under 250 words. If anything suggests risk of relapse or harm, name it plainly under Hard moments.",
+"","DAILY CHECK-INS (1 = low, 5 = high; for cravings higher means stronger):",lines.join("\n")||"(none)",
+"","JOURNAL ENTRIES:",ents.map(e=>fmt(e.day,{weekday:"short"})+": "+e.text.slice(0,2500)).join("\n\n")||"(none)"].join("\n").slice(0,60000);
+  const ctl=new AbortController();wkState={status:"thinking",text:"",ctl};renderWeekly();
+  try{
+    const res=await sampleFn(prompt,{signal:ctl.signal,cache:fresh?false:true,onText:({text})=>{if(!wkState)return;wkState.status="streaming";wkState.text=text;renderWeekly()}});
+    wkState=null;
+    try{await Data.saveWeekly("w"+a,{text:res.text,at:Date.now(),start:a})}catch(e){toast("The summary couldn't be saved, but you can copy it now.");S.weekly["w"+a]={text:res.text}}
+    renderWeekly();
+  }catch(err){
+    const code=err&&err.code;
+    if(code==="cancelled"){wkState=null;renderWeekly();return}
+    if(OFF_CODES.includes(code)){wkState=null;aiOff();return}
+    wkState={status:"error",text:code==="refused"?"":(err&&err.text)||"",msg:ERR_MSG[code]||"Something went wrong writing the summary."};
+    renderWeekly();wkState=null;
+  }
+}
+
+// =============== CHECK-IN ===============
+let ciDay=todayN;
+$("ciToday").onclick=()=>{ciDay=todayN;renderCheckin(true)};
+$("ciYest").onclick=()=>{ciDay=todayN-1;renderCheckin(true)};
+function renderCheckin(force){
+  const view=$("v-checkin");
+  if(!force&&view.contains(document.activeElement)&&document.activeElement.tagName==="TEXTAREA")return;
+  $("ciToday").setAttribute("aria-pressed",ciDay===todayN);$("ciYest").setAttribute("aria-pressed",ciDay!==todayN);
+  $("ciLede").textContent=fmt(ciDay);
+  const c=S.checkins["d"+ciDay]||{};
+  const sc=$("scales");sc.innerHTML="";
+  SCALES.forEach(s=>{
+    const wrap=document.createElement("div");wrap.className="scale";wrap.setAttribute("role","group");wrap.setAttribute("aria-label",s.name);
+    wrap.innerHTML='<div class="scale-head"><strong></strong><span></span></div><div class="pips"></div>';
+    wrap.querySelector("strong").textContent=s.name;wrap.querySelector(".scale-head span").textContent=s.note||"";
+    const pips=wrap.querySelector(".pips");
+    s.labels.forEach((l,i)=>{const b=document.createElement("button");b.type="button";b.className="pip";b.setAttribute("aria-pressed",c[s.k]===i+1);b.innerHTML="<b>"+(i+1)+"</b><small>"+esc(l)+"</small>";
+      b.onclick=()=>{Data.saveCheckin(ciDay,{[s.k]:i+1}).catch(()=>toast("Couldn't save that. Try again."))};pips.appendChild(b)});
+    sc.appendChild(wrap);
+  });
+  if(force)$("ciNote").value=c.note||"";
+  $("ciSaved").textContent=c.updatedAt&&(c.mood||c.craving||c.sleep)?"Saved "+timeOf(c.updatedAt):"";
+  const ev=c.evening||{};
+  $("soberYes").setAttribute("aria-pressed",c.sober==="yes");$("soberNo").setAttribute("aria-pressed",c.sober==="no");
+  $("slipNote").hidden=c.sober!=="no";
+  const qs=$("evQs");
+  if(force||!qs.children.length){
+    qs.innerHTML="";
+    EVENING.forEach(q=>{const l=document.createElement("label");l.className="field";l.innerHTML='<span></span><textarea data-k="'+q.k+'" id="ev-'+q.k+'"></textarea>';l.querySelector("span").textContent=q.q;l.querySelector("textarea").value=ev[q.k]||"";qs.appendChild(l)});
+  }
+  $("evSaved").textContent=ev.savedAt?"Saved "+timeOf(ev.savedAt):"";
+}
+$("ciNote").addEventListener("change",()=>{Data.saveCheckin(ciDay,{note:$("ciNote").value.trim()}).catch(()=>toast("Couldn't save your note."))});
+$("soberYes").onclick=()=>Data.saveCheckin(ciDay,{sober:"yes"}).catch(()=>toast("Couldn't save that."));
+$("soberNo").onclick=()=>Data.saveCheckin(ciDay,{sober:"no"}).catch(()=>toast("Couldn't save that."));
+$("evSave").onclick=async()=>{
+  const ev={savedAt:Date.now()};document.querySelectorAll("#evQs textarea").forEach(t=>ev[t.dataset.k]=t.value.trim());
+  try{await Data.saveCheckin(ciDay,{evening:ev});toast("Evening review saved. Rest well.")}catch(e){toast("Couldn't save. Your words are still there, so try again.")}
+};
+
+// =============== PROGRESS ===============
+function milestones(start){
+  const list=[[1,"24 hours"],[7,"1 week"],[14,"2 weeks"],[30,"30 days"],[60,"60 days"],[90,"90 days"]].map(([d,n])=>({n,day:start+d}));
+  list.push({n:"6 months",day:addMonths(start,6)},{n:"9 months",day:addMonths(start,9)});
+  const yrs=Math.max(1,Math.floor((todayN-start)/365)+2);
+  for(let y=1;y<=yrs;y++)list.push({n:y===1?"1 year":y+" years",day:addMonths(start,12*y)});
+  return list;
+}
+function money(n){return "$"+Math.round(n).toLocaleString()}
+function renderProgress(){
+  const start=dateStrToDay(S.profile.soberDate);const hero=$("hero"),next=$("nextMile");
+  const allC=Object.values(S.checkins);
+  const urges=allC.reduce((s,c)=>s+(c.urges||0),0);
+  if(start==null){
+    hero.innerHTML='<p style="margin:0">Add your sobriety date to see your days, milestones, and money saved.</p><div><button class="btn" type="button" id="goDate">Add my date</button></div>';
+    $("goDate").onclick=()=>{showTab("me");setTimeout(()=>$("meDate").focus(),60)};
+    next.innerHTML="";$("miles").innerHTML="";
+  }else{
+    const days=Math.max(0,todayN-start);
+    hero.innerHTML='<span class="num"></span><span class="unit"></span>';
+    hero.querySelector(".num").textContent=days.toLocaleString();
+    hero.querySelector(".unit").textContent=(days===1?"day":"days")+" sober, since "+fmt(start,{weekday:undefined,year:"numeric"});
+    const ms=milestones(start);const nx=ms.find(m=>m.day>todayN);const prevDay=(ms.filter(m=>m.day<=todayN).pop()||{day:start}).day;
+    if(nx){const pct=Math.max(2,Math.min(100,(todayN-prevDay)/(nx.day-prevDay)*100));const left=nx.day-todayN;
+      next.innerHTML='<div class="next-line"><span>Next: <b></b></span><span class="saved-at"></span></div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(pct)+'"><i style="width:'+pct+'%"></i></div>';
+      next.querySelector("b").textContent=nx.n;next.querySelector(".saved-at").textContent=left+(left===1?" day to go":" days to go")+" · "+fmtShort(nx.day);
+    }else next.innerHTML="";
+    const ml=$("miles");ml.innerHTML="";
+    ms.filter(m=>m.day<=todayN||m===nx).forEach(m=>{const li=document.createElement("li");li.className=m.day<=todayN?"done":"";li.innerHTML="<span></span><small></small>";li.querySelector("span").textContent=m.n;li.querySelector("small").textContent=m.day<=todayN?fmtShort(m.day):"coming up";ml.appendChild(li)});
+  }
+  const st=$("stats");st.innerHTML="";
+  const days=start==null?0:Math.max(0,todayN-start);
+  const tiles=[];
+  if(start!=null&&+S.profile.spendPerDay>0)tiles.push([money(days*S.profile.spendPerDay),"money not spent on drinking"]);
+  if(start!=null&&+S.profile.drinksPerDay>0)tiles.push([(days*S.profile.drinksPerDay).toLocaleString(),"drinks not taken"]);
+  tiles.push([urges.toLocaleString(),urges===1?"craving ridden out":"cravings ridden out"]);
+  tiles.push([S.entries.length.toLocaleString(),S.entries.length===1?"journal entry":"journal entries"]);
+  if(start!=null&&!(+S.profile.spendPerDay>0))tiles.unshift(["Add","your daily spend under Me to see money saved"]);
+  tiles.slice(0,4).forEach(([b,s])=>{const d=document.createElement("div");d.className="stat";d.innerHTML="<b></b><span></span>";d.querySelector("b").textContent=b;d.querySelector("span").textContent=s;st.appendChild(d)});
+  renderTrend();
+}
+function renderTrend(){
+  const box=$("trend");box.innerHTML="";
+  const N=30,first=todayN-N+1;
+  const rows=SCALES.map(s=>({s,vals:Array.from({length:N},(_,i)=>{const c=S.checkins["d"+(first+i)];return c&&c[s.k]?c[s.k]:null})}));
+  const count=rows[0].vals.map((_,i)=>rows.some(r=>r.vals[i]!=null)).filter(Boolean).length;
+  if(count<2){box.innerHTML='<p class="empty">Check in for a few days and your mood, cravings and sleep will show up here as trends.</p>';return}
+  const Wd=Math.max(260,Math.min(600,box.clientWidth||600)),H=64,padT=8,padB=8,padR=34,padL=4;
+  const x=i=>padL+i*(Wd-padL-padR)/(N-1),y=v=>padT+(5-v)*(H-padT-padB)/4;
+  const svgs=[];
+  rows.forEach(r=>{
+    const row=document.createElement("div");row.className="trend-row";
+    const last=[...r.vals].reverse().find(v=>v!=null);
+    row.innerHTML='<h3><span class="t"></span><span class="n"></span></h3>';
+    row.querySelector(".t").textContent=r.s.name;row.querySelector(".n").textContent=r.s.note||"";
+    let path="",dots="";let prev=null;
+    r.vals.forEach((v,i)=>{if(v==null){prev=null;return}
+      path+=(prev==null?"M":"L")+x(i).toFixed(1)+" "+y(v).toFixed(1)+" ";
+      const iso=(prev==null)&&(i===N-1||r.vals[i+1]==null);if(iso)dots+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3" fill="var(--river)"/>';prev=v});
+    const li=r.vals.map((v,i)=>v!=null?i:-1).filter(i=>i>=0).pop();
+    const grid=[1,3,5].map(g=>'<line x1="'+padL+'" x2="'+(Wd-padR)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(Wd-padR+8)+'" y="'+(y(g)+4)+'" font-size="10" fill="var(--muted)">'+g+'</text>').join("");
+    const end=li!=null?'<circle cx="'+x(li)+'" cy="'+y(r.vals[li])+'" r="4.5" fill="var(--river)" stroke="var(--bg)" stroke-width="2"/>':"";
+    row.insertAdjacentHTML("beforeend",'<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="'+esc(r.s.name)+' over the last 30 days, latest '+(last||"none")+' of 5">'+grid+'<path d="'+path+'" fill="none" stroke="var(--river)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+dots+end+'<line class="xh" x1="0" x2="0" y1="'+padT+'" y2="'+(H-padB)+'" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/></svg>');
+    box.appendChild(row);svgs.push({svg:row.querySelector("svg"),r});
+  });
+  box.insertAdjacentHTML("beforeend",'<div class="trend-x" style="padding-right:'+(padR/Wd*100)+'%"><span>'+fmtShort(first)+'</span><span>Today</span></div><p class="readout" id="readout" aria-live="polite">Tap or hover on the chart to see a day.</p>');
+  const show=i=>{
+    svgs.forEach(({svg})=>{const l=svg.querySelector(".xh");l.setAttribute("x1",x(i));l.setAttribute("x2",x(i));l.setAttribute("visibility","visible")});
+    const parts=rows.map(r=>r.vals[i]!=null?r.s.name.split(" ")[0]+" "+r.vals[i]+" ("+r.s.labels[r.vals[i]-1]+")":null).filter(Boolean);
+    $("readout").textContent=fmt(first+i,{weekday:"short"})+": "+(parts.length?parts.join(" · "):"no check-in");
+  };
+  svgs.forEach(({svg})=>{
+    svg.addEventListener("pointermove",ev=>{const rc=svg.getBoundingClientRect();const px=(ev.clientX-rc.left)/rc.width*Wd;const i=Math.max(0,Math.min(N-1,Math.round((px-padL)/((Wd-padL-padR)/(N-1)))));show(i)});
+    svg.addEventListener("pointerdown",ev=>{const rc=svg.getBoundingClientRect();const px=(ev.clientX-rc.left)/rc.width*Wd;show(Math.max(0,Math.min(N-1,Math.round((px-padL)/((Wd-padL-padR)/(N-1))))))});
+  });
+}
+let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(tab==="progress")renderTrend()},200)});
+
+// =============== ME ===============
+function renderMe(force){
+  const p=S.profile;const view=$("v-me");
+  if(force||!view.contains(document.activeElement)){
+    $("meDate").value=p.soberDate||"";$("meDrinks").value=p.drinksPerDay||"";$("meSpend").value=p.spendPerDay||"";
+  }
+  const chosen=p.values||[];
+  $("valCount").textContent=chosen.length+" of 5 chosen.";
+  const chips=$("valChips");chips.innerHTML="";
+  const all=VALUES.concat(chosen.filter(v=>!VALUES.includes(v)));
+  all.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=v;const on=chosen.includes(v);b.setAttribute("aria-pressed",on);
+    b.onclick=()=>{let next=chosen.slice();if(on)next=next.filter(x=>x!==v);else{if(next.length>=5){toast("You can choose up to five. Tap one to remove it first.");return}next.push(v)}Data.saveProfile({values:next}).catch(()=>toast("Couldn't save that."))};
+    chips.appendChild(b)});
+  listEditor("myGrat",p.myGratitude||[],"myGratitude");
+  listEditor("myReasons",p.myReasons||[],"myReasons");
+  const cl=$("contacts");cl.innerHTML="";
+  (p.contacts||[]).forEach((c,i)=>{const li=document.createElement("li");li.innerHTML='<span class="contact"><strong></strong><small></small></span><button class="del" type="button">Remove</button>';
+    li.querySelector("strong").textContent=c.name;li.querySelector("small").textContent=[c.role,c.phone].filter(Boolean).join(" · ");
+    li.querySelector(".del").onclick=()=>{const n=(p.contacts||[]).slice();n.splice(i,1);Data.saveProfile({contacts:n})};cl.appendChild(li)});
+  if(!(p.contacts||[]).length)cl.innerHTML='<li><span class="empty">No one added yet. Start with your sponsor.</span></li>';
+}
+function listEditor(id,items,field){
+  const ul=$(id);ul.innerHTML="";
+  items.forEach((t,i)=>{const li=document.createElement("li");li.innerHTML='<span></span><button class="del" type="button">Remove</button>';li.querySelector("span").textContent=t;
+    li.querySelector(".del").onclick=()=>{const n=items.slice();n.splice(i,1);Data.saveProfile({[field]:n})};ul.appendChild(li)});
+  if(!items.length)ul.innerHTML='<li><span class="empty">Nothing added yet.</span></li>';
+}
+function addTo(inputId,field,max){const v=$(inputId).value.trim();if(!v)return;const cur=(S.profile[field]||[]).slice();if(cur.length>=max){toast("That list is full. Remove one first.");return}cur.push(v);$(inputId).value="";Data.saveProfile({[field]:cur}).then(()=>toast("Added"),()=>toast("Couldn't save that."))}
+$("gAdd").onclick=()=>addTo("gNew","myGratitude",60);$("gNew").addEventListener("keydown",e=>{if(e.key==="Enter")addTo("gNew","myGratitude",60)});
+$("rAdd").onclick=()=>addTo("rNew","myReasons",60);$("rNew").addEventListener("keydown",e=>{if(e.key==="Enter")addTo("rNew","myReasons",60)});
+function addValue(){const v=$("valNew").value.trim();if(!v)return;const cur=(S.profile.values||[]).slice();if(cur.includes(v)){$("valNew").value="";return}if(cur.length>=5){toast("You can choose up to five. Remove one first.");return}cur.push(v);$("valNew").value="";Data.saveProfile({values:cur})}
+$("valAdd").onclick=addValue;$("valNew").addEventListener("keydown",e=>{if(e.key==="Enter")addValue()});
+$("cAdd").onclick=()=>{const name=$("cName").value.trim(),phone=$("cPhone").value.trim(),role=$("cRole").value.trim();if(!name){toast("Add a name first");$("cName").focus();return}
+  const cur=(S.profile.contacts||[]).slice();if(cur.length>=12){toast("That list is full. Remove one first.");return}cur.push({name,phone,role});["cName","cPhone","cRole"].forEach(i=>$(i).value="");Data.saveProfile({contacts:cur}).then(()=>toast("Added"))};
+$("meDate").addEventListener("change",()=>{const v=$("meDate").value;if(v&&dateStrToDay(v)>todayN){toast("That date is in the future.");return}Data.saveProfile({soberDate:v||null}).then(()=>toast(v?"Sobriety date saved":"Sobriety date cleared"))});
+$("meDrinks").addEventListener("change",()=>{const v=Math.max(0,+$("meDrinks").value||0);Data.saveProfile({drinksPerDay:v})});
+$("meSpend").addEventListener("change",()=>{const v=Math.max(0,+$("meSpend").value||0);Data.saveProfile({spendPerDay:v})});
+
+// =============== BREATH PACER ===============
+// in 4 seconds, out 6 seconds
+function Pacer(circle,label,clock,total,onTick,onDone){
+  let t0=0,timer=null,phase="";
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fmtT=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
+  function tick(){
+    const el=(Date.now()-t0)/1000;
+    if(el>=total){stop();clock.textContent="0:00";label.textContent="Done";onDone&&onDone();return}
+    clock.textContent=fmtT(total-el);
+    const inCycle=el%10;const p=inCycle<4?"in":"out";
+    if(p!==phase){phase=p;label.textContent=p==="in"?"Breathe in":"Breathe out";if(!reduce){circle.classList.toggle("big",p==="in");circle.classList.toggle("out",p==="out")}}
+    onTick&&onTick(el);
+  }
+  function start(){t0=Date.now();phase="";tick();timer=setInterval(tick,250);try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(l=>this._lock=l,()=>{})}catch(e){}}
+  function stop(){clearInterval(timer);timer=null;circle.classList.remove("big","out");}
+  function reset(){stop();clock.textContent=fmtT(total);label.textContent="Ready"}
+  return {start,stop,reset,get running(){return !!timer}};
+}
+let lastFocus=null;
+function openOverlay(id){lastFocus=document.activeElement;$(id).hidden=false;document.body.style.overflow="hidden";$(id).querySelector(".x").focus()}
+function closeOverlay(id){$(id).hidden=true;document.body.style.overflow="";lastFocus&&lastFocus.focus&&lastFocus.focus()}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("sos").hidden)closeSOS();else if(!$("reh").hidden)closeReh()}});
+
+// =============== I'M STRUGGLING ===============
+const sosPacer=Pacer($("sosBreath"),$("sosBreathTxt"),$("sosClock"),600,null,()=>{$("sosStart").textContent="Start again";toast("You rode it out. Well done.")});
+$("sosStart").onclick=()=>{if(sosPacer.running){sosPacer.reset();$("sosStart").textContent="Start"}else{sosPacer.start();$("sosStart").textContent="Stop"}};
+const haltOn=new Set();
+function renderHalt(){
+  const h=$("halt");h.innerHTML="";
+  HALT.forEach(x=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-pressed",haltOn.has(x.k));b.innerHTML="<b>"+x.l+"</b><small>"+x.n+"</small>";b.onclick=()=>{haltOn.has(x.k)?haltOn.delete(x.k):haltOn.add(x.k);renderHalt()};h.appendChild(b)});
+  const t=$("haltTips");t.innerHTML="";HALT.filter(x=>haltOn.has(x.k)).forEach(x=>{const li=document.createElement("li");li.innerHTML="<b></b> ";li.querySelector("b").textContent=x.n+":";li.append(x.tip);t.appendChild(li)});
+}
+function openSOS(){
+  haltOn.clear();renderHalt();sosPacer.reset();$("sosStart").textContent="Start";
+  const own=S.profile.myReasons||[];const rs=own.length?pick(own,Math.min(3,own.length),Date.now()%9973):pick(REASONS,3,todayN);
+  const ul=$("sosReasons");ul.innerHTML="";rs.forEach(r=>{const li=document.createElement("li");li.textContent=r;ul.appendChild(li)});
+  const pl=$("sosPeople");pl.innerHTML="";
+  const cs=S.profile.contacts||[];
+  if(!cs.length){pl.innerHTML='<li><span class="contact"><strong>Add your sponsor and support people</strong><small>They\'ll show up here, ready to call.</small></span><button class="linkbtn" type="button" id="sosAddPeople">Add people</button></li>';
+    $("sosAddPeople").onclick=()=>{closeSOS();showTab("me");setTimeout(()=>$("cName").focus(),60)}}
+  cs.forEach(c=>{const li=document.createElement("li");li.innerHTML='<span class="contact"><strong></strong><small></small></span><span class="row"></span>';
+    li.querySelector("strong").textContent=c.name;li.querySelector("small").textContent=c.role||"";
+    const r=li.querySelector(".row");
+    if(c.phone){const n=document.createElement("span");n.className="num";n.textContent=c.phone;r.appendChild(n);
+      const call=document.createElement("a");call.href="tel:"+c.phone.replace(/[^\d+]/g,"");call.textContent="Call";r.appendChild(call);
+      const cp=document.createElement("button");cp.type="button";cp.className="linkbtn";cp.textContent="Copy";cp.onclick=()=>copyText(c.phone,"Number copied");r.appendChild(cp)}
+    pl.appendChild(li)});
+  openOverlay("sos");
+}
+function closeSOS(){sosPacer.stop();closeOverlay("sos")}
+$("sosOpen").onclick=openSOS;$("sosClose").onclick=closeSOS;
+document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copyText(b.dataset.copy,"Number copied"));
+$("sosMade").onclick=async()=>{
+  const c=S.checkins["d"+todayN]||{};
+  try{await Data.saveCheckin(todayN,{urges:(c.urges||0)+1});toast("Logged. One more craving that didn't win.")}catch(e){toast("You got through it. (Couldn't log it just now.)")}
+  closeSOS();
+};
+$("sosWrite").onclick=()=>{closeSOS();showTab("journal");const ta=$("entryText");if(!ta.value.trim())ta.value="Right now I'm feeling a craving. ";ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)};
+
+// =============== MORNING REHEARSAL ===============
+$("rehDots").innerHTML=REHEARSAL.map(()=>"<i></i>").join("");
+let rehIdx=-1;
+function setStep(i){if(i===rehIdx)return;rehIdx=i;$("rehStep").textContent=REHEARSAL[i];[...$("rehDots").children].forEach((d,k)=>d.classList.toggle("on",k<=i))}
+const rehPacer=Pacer($("rehBreath"),$("rehBreathTxt"),$("rehClock"),180,el=>setStep(Math.min(REHEARSAL.length-1,Math.floor(el/30))),()=>{$("rehStep").textContent="Carry this feeling into your day. You've already begun.";$("rehStart").textContent="Begin again"});
+function openReh(){rehPacer.reset();rehIdx=-1;$("rehStep").textContent="Find a comfortable seat. When you're ready, tap Begin.";[...$("rehDots").children].forEach(d=>d.classList.remove("on"));$("rehStart").textContent="Begin";openOverlay("reh")}
+function closeReh(){rehPacer.stop();closeOverlay("reh")}
+$("rehearseOpen").onclick=openReh;$("rehClose").onclick=closeReh;
+$("rehStart").onclick=()=>{if(rehPacer.running){rehPacer.reset();$("rehStart").textContent="Begin"}else{rehIdx=-1;rehPacer.start();$("rehStart").textContent="Stop"}};
+
+// =============== START ===============
+async function initAI(){
+  try{sampleFn=window.claude&&claude.use?await claude.use("sample"):null}catch(e){sampleFn=null}
+  aiResolved=true;
+  if(!sampleFn)$("weeklyCard").hidden=true;
+  if(sampleFn){$("aiToggleRow").hidden=false;$("aiNote").hidden=false;renderEntries()}
+  renderWeekly();
+}
+renderToday();renderEntries();renderWeekly();renderCheckin(true);renderMe(true);
+const h0=(location.hash||"").slice(1);showTab(["today","journal","checkin","progress","me"].includes(h0)?h0:"today");
+initData();initAI();
+</script>
+
+<script>
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
