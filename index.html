@@ -478,6 +478,15 @@ a{color:var(--river)}
     <div class="addrow"><input type="text" id="rNew" placeholder="A reason to stay sober" aria-label="A reason to stay sober"><button class="btn ghost" type="button" id="rAdd">Add</button></div>
   </section>
 
+  <section class="card" id="aiCard" hidden style="display:flex;flex-direction:column;gap:14px">
+    <p class="label" style="margin:0">AI responses</p>
+    <p class="hint" style="margin:0">Connect your AI service to get caring responses to journal entries and weekly summaries. You only need to do this once on each phone or computer.</p>
+    <label class="field"><span>AI server address</span><input type="text" id="aiUrl" placeholder="https://one-day-ai.yourname.workers.dev" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <label class="field"><span>Access code</span><input type="text" id="aiCode" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <div class="row"><button class="btn" id="aiSave" type="button">Save and test</button><button class="btn ghost" id="aiClear" type="button">Disconnect</button></div>
+    <p class="saved-at" id="aiStatus" style="margin:0"></p>
+  </section>
+
   <footer>
     <p style="margin:0" id="meStore"></p>
     <p style="margin:0">In crisis? Call or text 988 any time, or call 911 if you're in danger.</p>
@@ -980,7 +989,7 @@ function entryPrompt(e){
 "","Today's reflection prompt they may be answering: \""+r[2]+"\"","","Their journal entry:","\"\"\"",e.text.slice(0,8000),"\"\"\""
 ].join("\n");
 }
-const ERR_MSG={rate_limited:"You've reached your limit for now. Try again a little later.",session_expired:"Please sign in to Claude again, then try again.",refused:"A response couldn't be written for this.",upstream_error:"The connection dropped before the response finished."};
+const ERR_MSG={bad_code:"The AI access code doesn't match. Check it under Me.",api_error:"The AI service turned this down. If it keeps happening, check that your Anthropic account has credit.",rate_limited:"You've reached your limit for now. Try again a little later.",session_expired:"Please sign in to Claude again, then try again.",refused:"A response couldn't be written for this.",upstream_error:"The connection dropped before the response finished."};
 const OFF_CODES=["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
 function aiOff(){sampleFn=null;$("aiToggleRow").hidden=true;$("aiNote").hidden=true;renderEntries();renderWeekly();toast("AI responses are turned off for this view.")}
 async function askAI(e,fresh){
@@ -1336,13 +1345,46 @@ $("rehearseOpen").onclick=openReh;$("rehClose").onclick=closeReh;
 $("rehStart").onclick=()=>{if(rehPacer.running){rehPacer.reset();$("rehStart").textContent="Begin"}else{rehIdx=-1;rehPacer.start();$("rehStart").textContent="Stop"}};
 
 // =============== START ===============
-async function initAI(){
-  try{sampleFn=window.claude&&claude.use?await claude.use("sample"):null}catch(e){sampleFn=null}
-  aiResolved=true;
-  if(!sampleFn)$("weeklyCard").hidden=true;
-  if(sampleFn){$("aiToggleRow").hidden=false;$("aiNote").hidden=false;renderEntries()}
-  renderWeekly();
+// AI comes from Claude when the app runs inside Claude, otherwise from your own AI server
+let aiSource="none";
+function ownAI(){
+  const url=(ls.get("ai-url")||"").trim(),code=(ls.get("ai-code")||"").trim();
+  if(!url||!code)return null;
+  return async function(prompt,opts){
+    opts=opts||{};let r;
+    try{r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","X-Access-Code":code},body:JSON.stringify({prompt:String(prompt)}),signal:opts.signal})}
+    catch(e){throw {code:e&&e.name==="AbortError"?"cancelled":"upstream_error"}}
+    let d=null;try{d=await r.json()}catch(e){}
+    if(!r.ok)throw {code:(d&&d.error)||"upstream_error",message:d&&d.detail};
+    if(!d||!d.text)throw {code:"empty_completion"};
+    if(opts.onText)opts.onText({text:d.text,delta:d.text});
+    return {text:d.text,truncated:d.stop==="max_tokens"};
+  };
 }
+function applyAI(){
+  const on=!!sampleFn;
+  $("aiToggleRow").hidden=!on;$("aiNote").hidden=!on;$("weeklyCard").hidden=!on;
+  renderEntries();renderWeekly();
+}
+async function initAI(){
+  let s=null;
+  try{s=window.claude&&claude.use?await claude.use("sample"):null}catch(e){s=null}
+  aiResolved=true;
+  if(s){sampleFn=s;aiSource="claude"}
+  else{aiSource="own";sampleFn=ownAI();$("aiCard").hidden=false;$("aiUrl").value=ls.get("ai-url")||"";$("aiCode").value=ls.get("ai-code")||"";$("aiStatus").textContent=sampleFn?"Connected on this device.":"Not connected yet."}
+  applyAI();
+}
+$("aiSave").onclick=async()=>{
+  let url=$("aiUrl").value.trim();const code=$("aiCode").value.trim();
+  if(url&&!/^https?:\/\//i.test(url))url="https://"+url;
+  if(!url||!code){$("aiStatus").textContent="Fill in both the address and the access code.";return}
+  ls.set("ai-url",url);ls.set("ai-code",code);$("aiUrl").value=url;
+  sampleFn=ownAI();$("aiStatus").textContent="Testing…";$("aiSave").disabled=true;
+  try{await sampleFn("Reply with only the word: ready");$("aiStatus").textContent="Connected. Journal responses and weekly summaries are on.";toast("AI connected")}
+  catch(e){$("aiStatus").textContent=e.code==="bad_code"?"The access code doesn't match the one on your AI server.":e.code==="api_error"?"The server answered, but the AI service refused. Check your Anthropic key and credit.":"Couldn't reach that address. Check it and try again."}
+  $("aiSave").disabled=false;applyAI();
+};
+$("aiClear").onclick=()=>{ls.del("ai-url");ls.del("ai-code");$("aiUrl").value="";$("aiCode").value="";sampleFn=null;$("aiStatus").textContent="Disconnected on this device.";applyAI()};
 renderToday();renderEntries();renderWeekly();renderCheckin(true);renderMe(true);
 const h0=(location.hash||"").slice(1);showTab(["today","journal","checkin","progress","me"].includes(h0)?h0:"today");
 initData();initAI();
