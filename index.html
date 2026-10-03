@@ -357,9 +357,9 @@ a{color:var(--river)}
   </section>
 
   <section class="card" id="weeklyCard" aria-labelledby="wkHead">
-    <p class="label">For my counsellor</p>
+    <p class="label">To share with my sponsor or counsellor</p>
     <h2 class="h" id="wkHead">Weekly summary</h2>
-    <p class="hint" style="margin:0 0 14px">A short summary of your week's journal and check-ins, to bring to your next session.</p>
+    <p class="hint" style="margin:0 0 14px">A short summary of your week's journal and check-ins, to bring to your sponsor, counsellor or next session.</p>
     <div class="row" style="margin-bottom:14px">
       <div class="seg" role="group" aria-label="Which week">
         <button type="button" id="wkThis" aria-pressed="true">This week</button>
@@ -375,7 +375,7 @@ a{color:var(--river)}
     <div class="entries" id="entries"></div>
   </section>
   <p class="store-note" id="storeNote"></p>
-  <p class="store-note" id="aiNote" hidden>Responses are written by AI in the voice of a caring psychologist. They're support between sessions, not a replacement for your counsellor, your sponsor or professional care.</p>
+  <p class="store-note" id="aiNote" hidden>Responses are written by AI in the voice of a caring psychologist. They're support along the way, not a replacement for your sponsor, meetings or professional care.</p>
 </section>
 
 <!-- ================= CHECK-IN ================= -->
@@ -626,12 +626,12 @@ const AFFIRMATIONS = [
 ];
 const GRATITUDE = [
   "Waking up with a clear head","Remembering everything about last night","The people in the rooms who understand",
-  "My sponsor's voice on the other end of the phone","Another 24 hours of sobriety","Time spent with my kids","Hot coffee and a quiet morning",
-  "Being trusted again","The strength in my own hands","Moving water and fresh air","My body healing a little more each day",
-  "Money going to things that matter","A good night's sleep","Honest conversations","The chance to make amends","My counsellor's support",
+  "My sponsor's voice on the other end of the phone","Another 24 hours of sobriety","Time with the people I love","Hot coffee and a quiet morning",
+  "Being trusted again","The strength I didn't know I had","Moving water and fresh air","My body healing a little more each day",
+  "Money going to things that matter","A good night's sleep","Honest conversations","The chance to make amends","The people helping me get well",
   "Laughing without anything in my system","Being present for a small, ordinary moment","The meetings that are always there","Food that tastes good",
   "A roof over my head","Skills I've built over the years","Someone who reached out to me","The chance to help a newcomer",
-  "Feeling my feelings instead of numbing them","Mornings without regret","The trees and mountains around me","Work that gives my day shape",
+  "Feeling my feelings instead of numbing them","Mornings without regret","The sky, the trees, the world outside my door","Work that gives my day shape",
   "Friends who knew me before and stayed","A second chance I didn't expect","Having choices again"
 ];
 const REFLECTIONS = [
@@ -662,14 +662,14 @@ const REFLECTIONS = [
   ["Present moment","Right now there's no drink in my hand, and I'm okay. This moment is manageable. So is the next one.","What do I notice around me, right here, right now?"]
 ];
 const REASONS = [
-  "My kids get a father who is present and remembers.","I wake up without dread or shame.","People can trust my word again.",
+  "The people I love get the real me, present and remembering.","I wake up without dread or shame.","People can trust my word again.",
   "My mind is sharp enough to do work I'm proud of.","My body is healing, and I can feel it.","I can drive anywhere, any time, without worry.",
   "My money goes to my life, not to a bottle.","I'm there for the moments that matter.","I get to feel real joy, not borrowed joy.",
   "I no longer have to hide or keep track of lies.","My sleep is real rest.","I can handle hard things and find out I'm stronger than I thought.",
-  "I'm setting an example my family can be proud of.","Every sober day adds to the life I'm building.","I remember conversations, promises and good times.",
+  "I'm becoming someone the people around me can count on.","Every sober day adds to the life I'm building.","I remember conversations, promises and good times.",
   "I have a chance to help someone else who is where I was.","My relationships can grow instead of just survive.","I get to be the real me, not the drinking me.",
   "Anxiety and low moods ease when I'm not drinking.","I don't want to start over at day one.","My future self is counting on today's choice.",
-  "Drinking never solved one problem. It only added more.","I can be outside at dawn, clear-headed, enjoying it.","Freedom from the obsession is worth everything.",
+  "Drinking never solved one problem. It only added more.","I can enjoy a quiet morning, clear-headed and at peace.","Freedom from the obsession is worth everything.",
   "I've worked too hard to give this away for one night.","I promised myself a better life, and I'm keeping that promise.",
   "Sobriety gave me back my self-respect.","I want to be fully alive for whatever comes next."
 ];
@@ -975,14 +975,14 @@ function refreshAI(e){const w=document.querySelector('[data-ai="'+e.id+'"]');if(
 function entryPrompt(e){
   const r=cyc(REFLECTIONS,e.day,7);
   return [
-"You are responding to a private journal entry written by a person in recovery from alcohol use who works a 12-step program and sees a counsellor. Write as a warm, caring, experienced psychologist would speak to a client they respect: calm, human, never preachy or clinical.",
+"You are responding to a private journal entry written by a person in recovery from alcohol use who may work a 12-step program and may also see a counsellor or therapist. Write as a warm, caring, experienced psychologist would speak to a client they respect: calm, human, never preachy or clinical.",
 "","Guidelines:",
 "- Start by reflecting back what you hear in their own words, so they feel understood. Notice and name the feelings underneath.",
 "- Validate before anything else. Acknowledge real effort and courage, specifically, not with generic praise.",
 "- Where it fits naturally, draw lightly on Acceptance and Commitment Therapy (acceptance, noticing thoughts as thoughts, present moment, the observing self, values, committed action) and on recovery ideas like one day at a time. Never lecture or name-drop theories.",
 "- Offer at most one gentle question to sit with or one small, doable next step for today.",
 "- Do not diagnose, do not give medical advice, and do not invent facts about their life beyond what they wrote.",
-"- If the entry mentions cravings, wanting to drink, a relapse, or feeling unsafe: respond without judgment, and gently encourage reaching out today to their sponsor, a meeting, or their counsellor. If there is any hint of self-harm, suicide or danger, warmly but clearly encourage them to call or text 988 (Suicide Crisis Helpline in Canada and the US) or call 911 now, and keep the rest short.",
+"- If the entry mentions cravings, wanting to drink, a relapse, or feeling unsafe: respond without judgment, and gently encourage reaching out today to their sponsor, a meeting, a counsellor, or someone they trust. If there is any hint of self-harm, suicide or danger, warmly but clearly encourage them to call or text 988 (Suicide Crisis Helpline in Canada and the US) or call 911 now, and keep the rest short.",
 "- Keep it to about 120 to 180 words, in two or three short paragraphs. Plain language. Speak directly to them as \"you\". No headings, no bullet points, no sign-off.",
 "","Then, on its own line, write exactly: AFFIRMATIONS:",
 "Then three short first-person affirmations (\"I ...\"), one per line, each starting with \"- \", written specifically for what they shared today.",
@@ -1096,8 +1096,8 @@ async function writeWeekly(fresh){
     if(c.evening)EVENING.forEach(q=>{if(c.evening[q.k])parts.push(q.q+" "+c.evening[q.k])});
     lines.push(parts.join(" | "));
   });
-  const prompt=["You are helping a person in recovery from alcohol use prepare for their next counselling session. They work a 12-step program and their counsellor uses Acceptance and Commitment Therapy (ACT).",
-"Read their week below and write a short summary in the FIRST PERSON, as notes they could hand to their counsellor (\"This week I...\"). Be honest and specific, use their own words where helpful, and do not invent anything that isn't in the material. No diagnosis.",
+  const prompt=["You are helping a person in recovery from alcohol use prepare notes to share with their sponsor, counsellor or therapist. They may work a 12-step program.",
+"Read their week below and write a short summary in the FIRST PERSON, as notes they could share with their sponsor or counsellor (\"This week I...\"). Be honest and specific, use their own words where helpful, and do not invent anything that isn't in the material. No diagnosis.",
 "Use exactly these five headings, each on its own line starting with '## ', followed by 1 to 4 short plain sentences or lines:",
 "## Themes","## Wins","## Hard moments","## Patterns I noticed (mood, cravings, sleep)","## What I'd like to talk about",
 "Keep the whole thing under 250 words. If anything suggests risk of relapse or harm, name it plainly under Hard moments.",
