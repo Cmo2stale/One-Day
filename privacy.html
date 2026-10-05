@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2F5D5A">
+<meta name="description" content="How One Day Daily handles your privacy.">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Privacy · One Day Daily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#EDF0EC;--surface:#F8FAF7;--fg:#1C2A27;--muted:#5A6B66;--line:#CBD5CF;
+  --accent:#8A5A12;--river:#2F5D5A;--river-soft:#DCE8E5;--sos:#9C3B2A;--sos-soft:#F4DED8;
+  --display:"Newsreader", Georgia, "Times New Roman", serif;
+  --body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131B1A;--surface:#1A2422;--fg:#E4EAE6;--muted:#9AABA5;--line:#2C3A37;
+  --accent:#E3B062;--river:#8CC3BD;--river-soft:#1F3533;--sos:#F09A86;--sos-soft:#3C221D;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131B1A;--surface:#1A2422;--fg:#E4EAE6;--muted:#9AABA5;--line:#2C3A37;
+  --accent:#E3B062;--river:#8CC3BD;--river-soft:#1F3533;--sos:#F09A86;--sos-soft:#3C221D;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top,0px)) 20px calc(40px + env(safe-area-inset-bottom,0px))}
+.back{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.95rem;color:var(--river);text-decoration:none;padding:8px 0}
+.back:focus-visible{outline:2px solid var(--river);outline-offset:2px;border-radius:4px}
+.label{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:24px 0 6px}
+h1{font-family:var(--display);font-weight:600;font-size:1.9rem;line-height:1.2;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:1.05rem;margin:0 0 8px}
+h2{font-family:var(--display);font-weight:600;font-size:1.2rem;margin:0 0 6px;line-height:1.3}
+p{margin:0 0 10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+.card p:last-child{margin-bottom:0}
+.card.key{background:var(--river-soft);border-color:transparent}
+.card.crisis{background:var(--sos-soft);border-color:transparent}
+.card.crisis h2{color:var(--sos)}
+a{color:var(--river)}
+footer{border-top:1px solid var(--line);margin-top:28px;padding-top:16px;font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="./">‹ Back to One Day</a>
+
+  <p class="label">Privacy</p>
+  <h1>Your privacy in One Day Daily</h1>
+  <p class="lede">What you write here is personal. This page explains, in plain words, where it goes and who can see it.</p>
+
+  <section class="card key">
+    <h2>Your entries stay on your phone</h2>
+    <p>Your journal, check-ins, evening reviews, sobriety date, support people and lists are saved only on this device. There are no accounts, no ads and no tracking. Nobody else can see them, including the person who made this app.</p>
+  </section>
+
+  <section class="card">
+    <h2>If you turn on AI responses</h2>
+    <p>AI responses are off unless you connect them under <strong>Me</strong>. When they're on and you save a journal entry or ask for a weekly summary, that text is sent securely to an AI service (Anthropic's Claude) so it can write a response.</p>
+    <p>On the way, it passes through the app's own server. That server doesn't save or record what you wrote. The app's maker can see only how many responses are used, not what they say.</p>
+    <p>If you leave AI responses off, nothing you write leaves your phone.</p>
+  </section>
+
+  <section class="card">
+    <h2>Speaking your journal</h2>
+    <p>When you speak an entry instead of typing it, the app uses your phone's built-in speech-to-text. That follows your phone maker's own privacy settings.</p>
+  </section>
+
+  <section class="card">
+    <h2>Deleting your data</h2>
+    <p>Removing the app from your home screen, or clearing this website's data in your browser settings, erases everything saved on this device. There's no copy anywhere else, so it can't be recovered afterwards.</p>
+  </section>
+
+  <section class="card crisis">
+    <h2>A support tool, not medical care</h2>
+    <p>One Day Daily is here to support your recovery. It isn't a substitute for a doctor, counsellor or sponsor. In a crisis, call or text <strong>988</strong> any time, or call <strong>911</strong> if you're in danger.</p>
+  </section>
+
+  <footer>
+    <p>Last updated October 5, 2026. If this changes, the new version will appear here.</p>
+    <p style="margin:0">One Day Daily is not affiliated with or endorsed by Alcoholics Anonymous.</p>
+  </footer>
+</main>
+</body>
+</html>
