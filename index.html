@@ -674,6 +674,45 @@ const REASONS = [
   "Sobriety gave me back my self-respect.","I want to be fully alive for whatever comes next."
 ];
 const VALUES = ["Acceptance","Adventure","Assertiveness","Authenticity","Caring","Compassion","Connection","Contribution","Cooperation","Courage","Creativity","Curiosity","Encouragement","Excitement","Fairness","Fitness","Flexibility","Freedom","Friendliness","Forgiveness","Fun and humour","Gratitude","Honesty","Industry","Intimacy","Kindness","Love","Mindfulness","Order","Persistence","Respect","Responsibility","Safety","Pleasure","Skillfulness","Supportiveness","Trust"];
+const VALUE_EXAMPLES = {
+  "Acceptance":"Let one thing be as it is today, without fighting it",
+  "Adventure":"Take a different route or try something new",
+  "Assertiveness":"Say no kindly to one thing I don't want to do",
+  "Authenticity":"Say what I really think, gently",
+  "Caring":"Check in on someone who might be having a hard time",
+  "Compassion":"Speak to myself the way I'd speak to a friend",
+  "Connection":"Put my phone away during one conversation",
+  "Contribution":"Help someone with something small",
+  "Cooperation":"Ask someone how we can work on this together",
+  "Courage":"Do the one thing I've been putting off",
+  "Creativity":"Spend 15 minutes making or fixing something",
+  "Curiosity":"Ask someone a question and really listen to the answer",
+  "Encouragement":"Tell someone what they're doing well",
+  "Excitement":"Plan something to look forward to this week",
+  "Fairness":"Hear the other side before I decide",
+  "Fitness":"Go for a 20-minute walk",
+  "Flexibility":"Roll with one change to my plans",
+  "Freedom":"Choose one thing today just because I want to",
+  "Friendliness":"Greet someone warmly and mean it",
+  "Forgiveness":"Let go of one small grudge",
+  "Fun and humour":"Do something that makes me laugh",
+  "Gratitude":"Thank someone for something specific",
+  "Honesty":"Tell the truth about how I'm really doing",
+  "Industry":"Finish one task I've been avoiding",
+  "Intimacy":"Share something real with someone I trust",
+  "Kindness":"Do one kind thing without being asked",
+  "Love":"Tell someone I care about them",
+  "Mindfulness":"Take three slow breaths before I react",
+  "Order":"Tidy one space that's been bothering me",
+  "Persistence":"Keep going on one thing even when it's hard",
+  "Respect":"Listen without interrupting",
+  "Responsibility":"Keep one promise I've made",
+  "Safety":"Steer clear of one place or person that puts my sobriety at risk",
+  "Pleasure":"Slow down and really enjoy a meal",
+  "Skillfulness":"Practise something I want to get better at",
+  "Supportiveness":"Offer help to someone in the program",
+  "Trust":"Follow through on what I said I'd do"
+};
 const VALUE_PROMPTS = ["What's one small way I can live this today?","Where could this show up in my day, even briefly?","Who could I practise this with today?","What would this look like in my hardest moment today?"];
 const SCALES = [
   {k:"mood",name:"Mood",labels:["Rough","Low","Okay","Good","Great"]},
@@ -884,10 +923,11 @@ function renderToday(onlyValue){
     return;
   }
   const v=cyc(vals,current,1);const ci=S.checkins["d"+current]||{};
-  box.innerHTML='<div class="value-card"><p class="value-name"></p><label class="field"><span></span><input type="text" id="valueAction" placeholder="e.g. Call my sister and really listen"></label></div>';
+  box.innerHTML='<div class="value-card"><p class="value-name"></p><label class="field"><span></span><input type="text" id="valueAction"></label></div>';
   box.querySelector(".value-name").textContent=v;
   box.querySelector(".field>span").textContent=cyc(VALUE_PROMPTS,current,1);
   const inp=$("valueAction");inp.value=ci.valueAction||"";
+  inp.placeholder="e.g. "+(VALUE_EXAMPLES[v]||"One small action that reflects this value");
   inp.addEventListener("change",()=>{const val=inp.value.trim();if(val!==(ci.valueAction||""))Data.saveCheckin(current,{valueAction:val,value:v}).then(()=>toast("Saved"),()=>toast("Couldn't save that. Try again."))});
 }
 $("prev").onclick=()=>{current--;renderToday()};
