@@ -1055,7 +1055,7 @@ async function askAI(e,fresh){
 $("saveEntry").onclick=async()=>{
   const text=$("entryText").value.trim();
   if(!text){toast("Write or speak something first");$("entryText").focus();return}
-  if(listening)stopListening();
+  cancelListening();
   const e={id:"j"+Date.now()+Math.random().toString(36).slice(2,6),text,day:todayN,createdAt:Date.now(),via:voiceUsed?"voice":"typed"};
   $("saveEntry").disabled=true;
   try{
@@ -1064,7 +1064,7 @@ $("saveEntry").onclick=async()=>{
   }catch(err){toast(err&&err.code==="quota_exceeded"?"Your journal is full. Delete some old entries to save new ones.":"Couldn't save. Your words are still in the box, so try again.")}
   $("saveEntry").disabled=false;
 };
-$("clearEntry").onclick=()=>{$("entryText").value="";ls.set("journal-draft","");voiceUsed=false;$("interim").textContent=""};
+$("clearEntry").onclick=()=>{cancelListening();$("entryText").value="";ls.set("journal-draft","");voiceUsed=false;$("interim").textContent=""};
 
 // voice
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1072,22 +1072,41 @@ let rec=null,listening=false;
 const KEYBOARD_TIP="Tip: you can also tap the microphone on your phone's keyboard to dictate into the box.";
 $("voiceNote").textContent=SR?KEYBOARD_TIP:"Voice typing isn't supported in this browser. Tap the microphone on your phone's keyboard to dictate into the box instead.";
 if(!SR)$("mic").hidden=true;
-function insertText(txt){const ta=$("entryText");const v=ta.value;const sep=v&&!/\s$/.test(v)?" ":"";let t=txt.trim();if(!v.trim()||/[.!?]\s*$/.test(v))t=t.charAt(0).toUpperCase()+t.slice(1);ta.value=v+sep+t;voiceUsed=true;ta.scrollTop=ta.scrollHeight;ls.set("journal-draft",ta.value)}
-function setMic(on){listening=on;$("mic").classList.toggle("on",on);$("mic").setAttribute("aria-pressed",on);$("micLabel").textContent=on?"Stop":"Speak";$("entryText").classList.toggle("listening",on);if(!on)$("interim").textContent=""}
-function stopListening(){try{rec&&rec.stop()}catch(e){}setMic(false)}
+function joinSpoken(base,spoken){
+  let t=spoken.trim();if(!t)return base;
+  if(!base.trim()||/[.!?]\s*$/.test(base))t=t.charAt(0).toUpperCase()+t.slice(1);
+  const sep=base&&!/\s$/.test(base)?" ":"";
+  return base+sep+t;
+}
+function setMic(on){listening=on;$("mic").classList.toggle("on",on);$("mic").setAttribute("aria-pressed",on);$("micLabel").textContent=on?"Stop":"Speak";$("entryText").classList.toggle("listening",on);$("interim").textContent=on?"Listening…":""}
+// Stop and let the last words finish settling into the box
+function stopListening(){setMic(false);try{rec&&rec.stop()}catch(e){}}
+// Stop and ignore anything still coming in (used by Save, Clear, and typing)
+function cancelListening(){const r=rec;rec=null;setMic(false);try{r&&r.abort()}catch(e){}}
 function startListening(){
-  rec=new SR();rec.lang=navigator.language||"en-CA";rec.continuous=true;rec.interimResults=true;
-  rec.onresult=ev=>{let interim="";for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];if(r.isFinal)insertText(r[0].transcript);else interim+=r[0].transcript}$("interim").textContent=interim?interim+"…":"Listening…"};
-  rec.onerror=ev=>{
+  const r=new SR();rec=r;r.lang=navigator.language||"en-CA";r.continuous=true;r.interimResults=true;
+  const ta=$("entryText");const base=ta.value;
+  r.onresult=ev=>{
+    if(rec!==r)return;
+    let spoken="";
+    for(let i=0;i<ev.results.length;i++)spoken+=" "+ev.results[i][0].transcript.trim();
+    spoken=spoken.replace(/\s+/g," ").trim();
+    if(!spoken)return;
+    ta.value=joinSpoken(base,spoken);voiceUsed=true;
+    ta.scrollTop=ta.scrollHeight;ls.set("journal-draft",ta.value);
+  };
+  r.onerror=ev=>{
     if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){$("voiceNote").textContent="The microphone isn't available here. Tap the microphone on your phone's keyboard to dictate into the box instead, or type.";$("mic").hidden=true}
     else if(ev.error==="no-speech"){$("voiceNote").textContent="I didn't hear anything. Tap Speak and try again. "+KEYBOARD_TIP}
     else if(ev.error==="network"){$("voiceNote").textContent="Voice typing needs an internet connection. You can still type, or use your keyboard's microphone."}
-    setMic(false);
+    if(rec===r)setMic(false);
   };
-  rec.onend=()=>{if(listening)setMic(false)};
-  try{rec.start();setMic(true);$("interim").textContent="Listening…"}catch(e){setMic(false);$("voiceNote").textContent="Couldn't start the microphone. "+KEYBOARD_TIP}
+  r.onend=()=>{if(rec===r){rec=null;setMic(false)}};
+  try{r.start();setMic(true)}catch(e){rec=null;setMic(false);$("voiceNote").textContent="Couldn't start the microphone. "+KEYBOARD_TIP}
 }
 $("mic").onclick=()=>{listening?stopListening():startListening()};
+// If you start typing while it's listening, stop listening so the two don't fight
+$("entryText").addEventListener("input",()=>{if(listening)cancelListening()});
 
 // weekly summary
 let wkWhich=0; // 0 this week, 1 last week
