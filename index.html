@@ -326,7 +326,8 @@ a{color:var(--river)}
   <div class="row"><button class="btn ghost" id="copy" type="button">Copy today's message</button></div>
 
   <footer>
-    <p style="margin:0">Quotes are from public-domain translations. Affirmations, gratitude, reflections and reasons are original writing and are not AA-approved literature.</p>
+    <p style="margin:0">Quotes are from public-domain translations or traditional sayings. Affirmations, gratitude, reflections and reasons are original writing and are not AA-approved literature.</p>
+    <p style="margin:0">One Day Daily is not affiliated with or endorsed by Alcoholics Anonymous.</p>
   </footer>
 </section>
 
@@ -375,7 +376,7 @@ a{color:var(--river)}
     <div class="entries" id="entries"></div>
   </section>
   <p class="store-note" id="storeNote"></p>
-  <p class="store-note" id="aiNote" hidden>Responses are written by AI in the voice of a caring psychologist. They're support along the way, not a replacement for your sponsor, meetings or professional care.</p>
+  <p class="store-note" id="aiNote" hidden>Responses are written by AI to be warm and supportive. They aren't from a licensed professional, and they're support along the way, not a replacement for your sponsor, meetings, a counsellor or medical care.</p>
 </section>
 
 <!-- ================= CHECK-IN ================= -->
@@ -481,7 +482,7 @@ a{color:var(--river)}
   <section class="card" id="aiCard" hidden style="display:flex;flex-direction:column;gap:14px">
     <p class="label" style="margin:0">AI responses</p>
     <p class="hint" style="margin:0">Connect your AI service to get caring responses to journal entries and weekly summaries. You only need to do this once on each phone or computer.</p>
-    <p class="hint" style="margin:0">When this is on, journal entries and summary requests are sent securely to an AI service to write a response. They aren't saved on the app's server. <a href="privacy.html" style="color:var(--river)">How your privacy is protected</a></p>
+    <p class="hint" style="margin:0">When this is on, journal entries and summary requests are sent securely to Anthropic's AI service in the United States to write a response, so they're processed outside Canada. They aren't saved on the app's server. If you'd rather nothing leaves Canada, leave this off. <a href="privacy.html" style="color:var(--river)">How your privacy is protected</a></p>
     <label class="field"><span>AI server address</span><input type="text" id="aiUrl" placeholder="https://one-day-ai.yourname.workers.dev" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
     <label class="field"><span>Access code</span><input type="text" id="aiCode" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
     <div class="row"><button class="btn" id="aiSave" type="button">Save and test</button><button class="btn ghost" id="aiClear" type="button">Disconnect</button></div>
@@ -491,6 +492,7 @@ a{color:var(--river)}
   <footer>
     <p style="margin:0" id="meStore"></p>
     <p style="margin:0">In crisis? Call or text 988 any time, or call 911 if you're in danger.</p>
+    <p style="margin:0">One Day Daily is not affiliated with or endorsed by Alcoholics Anonymous.</p>
     <p style="margin:0"><a href="privacy.html" style="color:var(--river);font-weight:600">Privacy statement</a></p>
   </footer>
 </section>
@@ -583,6 +585,7 @@ a{color:var(--river)}
 
 <script>
 // =============== CONTENT ===============
+// Quotes: public-domain translations (Long, Gummere, Legge, Müller, Jowett, Trotter) or traditional sayings.
 const QUOTES = [
   ["Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts.","Marcus Aurelius","Meditations"],
   ["The universe is change; our life is what our thoughts make it.","Marcus Aurelius","Meditations"],
@@ -606,12 +609,12 @@ const QUOTES = [
   ["Character is destiny.","Heraclitus","Fragments"],
   ["All that we are is the result of what we have thought.","The Buddha","Dhammapada"],
   ["Health is the greatest of gifts, contentedness the greatest of riches.","The Buddha","Dhammapada"],
-  ["Life can only be understood backwards; but it must be lived forwards.","Søren Kierkegaard","Journals"],
-  ["He who has a why to live can bear almost any how.","Friedrich Nietzsche","Twilight of the Idols"],
+  ["It is not the man who has too little, but the man who craves more, that is poor.","Seneca","Letters to Lucilius"],
+  ["He who overcomes others is strong; he who overcomes himself is mighty.","Lao Tzu","Tao Te Ching"],
   ["All the unhappiness of men arises from one single fact, that they cannot stay quietly in their own chamber.","Blaise Pascal","Pensées"],
-  ["Who looks outside, dreams; who looks inside, awakes.","Carl Jung","Letter, 1916"],
-  ["Everything that irritates us about others can lead us to an understanding of ourselves.","Carl Jung","Memories, Dreams, Reflections"],
-  ["One does not become enlightened by imagining figures of light, but by making the darkness conscious.","Carl Jung","Alchemical Studies"]
+  ["If one man conquer in battle a thousand times thousand men, and if another conquer himself, he is the greatest of conquerors.","The Buddha","Dhammapada"],
+  ["When you know a thing, to hold that you know it; and when you do not know a thing, to allow that you do not know it; this is knowledge.","Confucius","Analects"],
+  ["Never value anything as profitable to thyself which shall compel thee to break thy promise, to lose thy self-respect.","Marcus Aurelius","Meditations"]
 ];
 const AFFIRMATIONS = [
   "Just for today, I will not drink.","I am enough, sober and just as I am.","I don't have to do this alone.",
@@ -723,7 +726,7 @@ const SCALES = [
 ];
 const EVENING = [
   {k:"well",q:"What went well today?"},
-  {k:"fear",q:"Was I resentful, selfish, dishonest or afraid? Where?"},
+  {k:"fear",q:"Where did resentment, fear, selfishness or dishonesty show up today?"},
   {k:"amends",q:"Do I owe anyone an apology, or a kind word?"},
   {k:"better",q:"What could I do differently tomorrow?"},
   {k:"grateful",q:"What am I grateful for tonight?"}
@@ -1024,6 +1027,7 @@ function entryPrompt(e){
 "- Where it fits naturally, draw lightly on Acceptance and Commitment Therapy (acceptance, noticing thoughts as thoughts, present moment, the observing self, values, committed action) and on recovery ideas like one day at a time. Never lecture or name-drop theories.",
 "- Offer at most one gentle question to sit with or one small, doable next step for today.",
 "- Do not diagnose, do not give medical advice, and do not invent facts about their life beyond what they wrote.",
+"- Never describe yourself as a psychologist, therapist, counsellor or any other professional.",
 "- If the entry mentions cravings, wanting to drink, a relapse, or feeling unsafe: respond without judgment, and gently encourage reaching out today to their sponsor, a meeting, a counsellor, or someone they trust. If there is any hint of self-harm, suicide or danger, warmly but clearly encourage them to call or text 988 (Suicide Crisis Helpline in Canada and the US) or call 911 now, and keep the rest short.",
 "- Keep it to about 120 to 180 words, in two or three short paragraphs. Plain language. Speak directly to them as \"you\". No headings, no bullet points, no sign-off.",
 "","Then, on its own line, write exactly: AFFIRMATIONS:",
@@ -1055,7 +1059,7 @@ async function askAI(e,fresh){
 $("saveEntry").onclick=async()=>{
   const text=$("entryText").value.trim();
   if(!text){toast("Write or speak something first");$("entryText").focus();return}
-  cancelListening();
+  if(listening)stopListening();
   const e={id:"j"+Date.now()+Math.random().toString(36).slice(2,6),text,day:todayN,createdAt:Date.now(),via:voiceUsed?"voice":"typed"};
   $("saveEntry").disabled=true;
   try{
@@ -1064,7 +1068,7 @@ $("saveEntry").onclick=async()=>{
   }catch(err){toast(err&&err.code==="quota_exceeded"?"Your journal is full. Delete some old entries to save new ones.":"Couldn't save. Your words are still in the box, so try again.")}
   $("saveEntry").disabled=false;
 };
-$("clearEntry").onclick=()=>{cancelListening();$("entryText").value="";ls.set("journal-draft","");voiceUsed=false;$("interim").textContent=""};
+$("clearEntry").onclick=()=>{$("entryText").value="";ls.set("journal-draft","");voiceUsed=false;$("interim").textContent=""};
 
 // voice
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1072,41 +1076,22 @@ let rec=null,listening=false;
 const KEYBOARD_TIP="Tip: you can also tap the microphone on your phone's keyboard to dictate into the box.";
 $("voiceNote").textContent=SR?KEYBOARD_TIP:"Voice typing isn't supported in this browser. Tap the microphone on your phone's keyboard to dictate into the box instead.";
 if(!SR)$("mic").hidden=true;
-function joinSpoken(base,spoken){
-  let t=spoken.trim();if(!t)return base;
-  if(!base.trim()||/[.!?]\s*$/.test(base))t=t.charAt(0).toUpperCase()+t.slice(1);
-  const sep=base&&!/\s$/.test(base)?" ":"";
-  return base+sep+t;
-}
-function setMic(on){listening=on;$("mic").classList.toggle("on",on);$("mic").setAttribute("aria-pressed",on);$("micLabel").textContent=on?"Stop":"Speak";$("entryText").classList.toggle("listening",on);$("interim").textContent=on?"Listening…":""}
-// Stop and let the last words finish settling into the box
-function stopListening(){setMic(false);try{rec&&rec.stop()}catch(e){}}
-// Stop and ignore anything still coming in (used by Save, Clear, and typing)
-function cancelListening(){const r=rec;rec=null;setMic(false);try{r&&r.abort()}catch(e){}}
+function insertText(txt){const ta=$("entryText");const v=ta.value;const sep=v&&!/\s$/.test(v)?" ":"";let t=txt.trim();if(!v.trim()||/[.!?]\s*$/.test(v))t=t.charAt(0).toUpperCase()+t.slice(1);ta.value=v+sep+t;voiceUsed=true;ta.scrollTop=ta.scrollHeight;ls.set("journal-draft",ta.value)}
+function setMic(on){listening=on;$("mic").classList.toggle("on",on);$("mic").setAttribute("aria-pressed",on);$("micLabel").textContent=on?"Stop":"Speak";$("entryText").classList.toggle("listening",on);if(!on)$("interim").textContent=""}
+function stopListening(){try{rec&&rec.stop()}catch(e){}setMic(false)}
 function startListening(){
-  const r=new SR();rec=r;r.lang=navigator.language||"en-CA";r.continuous=true;r.interimResults=true;
-  const ta=$("entryText");const base=ta.value;
-  r.onresult=ev=>{
-    if(rec!==r)return;
-    let spoken="";
-    for(let i=0;i<ev.results.length;i++)spoken+=" "+ev.results[i][0].transcript.trim();
-    spoken=spoken.replace(/\s+/g," ").trim();
-    if(!spoken)return;
-    ta.value=joinSpoken(base,spoken);voiceUsed=true;
-    ta.scrollTop=ta.scrollHeight;ls.set("journal-draft",ta.value);
-  };
-  r.onerror=ev=>{
+  rec=new SR();rec.lang=navigator.language||"en-CA";rec.continuous=true;rec.interimResults=true;
+  rec.onresult=ev=>{let interim="";for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];if(r.isFinal)insertText(r[0].transcript);else interim+=r[0].transcript}$("interim").textContent=interim?interim+"…":"Listening…"};
+  rec.onerror=ev=>{
     if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){$("voiceNote").textContent="The microphone isn't available here. Tap the microphone on your phone's keyboard to dictate into the box instead, or type.";$("mic").hidden=true}
     else if(ev.error==="no-speech"){$("voiceNote").textContent="I didn't hear anything. Tap Speak and try again. "+KEYBOARD_TIP}
     else if(ev.error==="network"){$("voiceNote").textContent="Voice typing needs an internet connection. You can still type, or use your keyboard's microphone."}
-    if(rec===r)setMic(false);
+    setMic(false);
   };
-  r.onend=()=>{if(rec===r){rec=null;setMic(false)}};
-  try{r.start();setMic(true)}catch(e){rec=null;setMic(false);$("voiceNote").textContent="Couldn't start the microphone. "+KEYBOARD_TIP}
+  rec.onend=()=>{if(listening)setMic(false)};
+  try{rec.start();setMic(true);$("interim").textContent="Listening…"}catch(e){setMic(false);$("voiceNote").textContent="Couldn't start the microphone. "+KEYBOARD_TIP}
 }
 $("mic").onclick=()=>{listening?stopListening():startListening()};
-// If you start typing while it's listening, stop listening so the two don't fight
-$("entryText").addEventListener("input",()=>{if(listening)cancelListening()});
 
 // weekly summary
 let wkWhich=0; // 0 this week, 1 last week
