@@ -476,8 +476,7 @@ a{color:var(--river)}
     <div><p class="label">Daily quotes</p><h2 class="h" style="margin:0">Where my quotes come from</h2>
     <p class="hint" style="margin-top:6px">Turn off any you'd rather not see. On Today, tap "Show me another" if a quote doesn't speak to you, or &#9825; Save to keep one here.</p></div>
     <div class="chips" id="qGroups"></div>
-    <p class="hint" style="margin:6px 0 0;font-weight:600;color:var(--fg)">Saved quotes</p>
-    <ul class="listedit" id="favList"></ul>
+    <div><button class="btn ghost" id="favOpen" type="button">My saved quotes</button></div>
   </section>
 
   <section style="display:flex;flex-direction:column;gap:14px">
@@ -608,13 +607,22 @@ a{color:var(--river)}
   </div>
 </div>
 
+<!-- ================= SAVED QUOTES ================= -->
+<div class="overlay" id="favs" role="dialog" aria-modal="true" aria-labelledby="favTitle" hidden>
+  <div class="overlay-in" style="gap:20px">
+    <div class="overlay-top"><p class="label" style="margin:0">Daily quotes</p><button class="x" type="button" id="favClose" aria-label="Close">&times;</button></div>
+    <div><h1 class="page" id="favTitle">My saved quotes</h1><p class="lede" id="favCount"></p></div>
+    <ul class="listedit" id="favList"></ul>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
 // =============== CONTENT ===============
 // Quotes: [text, author, source, group]. Each checked against a public-domain translation
-// (Long, Gummere, Ross, Jowett, Müller, Legge, King James Version) or a pre-1931 original. Long's "thou/thy" modernized to "you/your".
-const QUOTE_GROUPS=[{k:"philo",n:"Philosophy"},{k:"east",n:"Eastern wisdom"},{k:"writers",n:"Writers and thinkers"},{k:"faith",n:"Faith and scripture"}];
+// (Long, Gummere, Ross, Jowett, Müller, Legge) or a pre-1931 original. Long's "thou/thy" modernized to "you/your".
+const QUOTE_GROUPS=[{k:"philo",n:"Philosophy"},{k:"east",n:"Eastern wisdom"},{k:"writers",n:"Writers and thinkers"}];
 const QUOTES = [
   ["Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts.","Marcus Aurelius","Meditations","philo"],
   ["The universe is transformation: life is opinion.","Marcus Aurelius","Meditations","philo"],
@@ -659,15 +667,7 @@ const QUOTES = [
   ["Your pain is the breaking of the shell that encloses your understanding.","Kahlil Gibran","The Prophet","writers"],
   ["The deeper that sorrow carves into your being, the more joy you can contain.","Kahlil Gibran","The Prophet","writers"],
   ["Work is love made visible.","Kahlil Gibran","The Prophet","writers"],
-  ["You are good when you are one with yourself.","Kahlil Gibran","The Prophet","writers"],
-  ["Take therefore no thought for the morrow: for the morrow shall take thought for the things of itself. Sufficient unto the day is the evil thereof.","Matthew 6:34","King James Version","faith"],
-  ["To every thing there is a season, and a time to every purpose under the heaven.","Ecclesiastes 3:1","King James Version","faith"],
-  ["He that is slow to anger is better than the mighty; and he that ruleth his spirit than he that taketh a city.","Proverbs 16:32","King James Version","faith"],
-  ["They are new every morning: great is thy faithfulness.","Lamentations 3:23","King James Version","faith"],
-  ["They shall run, and not be weary; and they shall walk, and not faint.","Isaiah 40:31","King James Version","faith"],
-  ["Be still, and know that I am God.","Psalm 46:10","King James Version","faith"],
-  ["Weeping may endure for a night, but joy cometh in the morning.","Psalm 30:5","King James Version","faith"],
-  ["This is the day which the Lord hath made; we will rejoice and be glad in it.","Psalm 118:24","King James Version","faith"]
+  ["You are good when you are one with yourself.","Kahlil Gibran","The Prophet","writers"]
 ];
 const AFFIRMATIONS = [
   "Just for today, I will not drink.","I am enough, sober and just as I am.","I don't have to do this alone.",
@@ -1417,11 +1417,9 @@ function renderMe(force){
   QUOTE_GROUPS.forEach(g=>{const b=document.createElement("button");b.type="button";b.className="chip";const on=!off.includes(g.k);b.setAttribute("aria-pressed",on);b.textContent=g.n;
     b.onclick=()=>{let n=off.slice();if(on){if(QUOTE_GROUPS.length-n.length<=1){toast("Keep at least one source on.");return}n.push(g.k)}else n=n.filter(x=>x!==g.k);Data.saveProfile({quoteOff:n}).catch(()=>toast("Couldn't save that."))};
     qg.appendChild(b)});
-  const fl=$("favList");fl.innerHTML="";const favs=p.favQuotes||[];
-  favs.forEach((t,i)=>{const q=QUOTES.find(x=>x[0]===t);const li=document.createElement("li");li.innerHTML='<span class="contact"><span class="fq"></span><small></small></span><button class="del" type="button">Remove</button>';
-    li.querySelector(".fq").textContent="“"+t+"”";li.querySelector("small").textContent=q?q[1]+" · "+q[2]:"";
-    li.querySelector(".del").onclick=()=>{const n=favs.slice();n.splice(i,1);Data.saveProfile({favQuotes:n})};fl.appendChild(li)});
-  if(!favs.length)fl.innerHTML='<li><span class="empty">Nothing saved yet. Tap ♡ Save under a quote on Today to keep it here.</span></li>';
+  const nFav=(p.favQuotes||[]).length;
+  $("favOpen").textContent=nFav?"My saved quotes ("+nFav+")":"My saved quotes";
+  renderFavs();
   listEditor("myGrat",p.myGratitude||[],"myGratitude");
   listEditor("myReasons",p.myReasons||[],"myReasons");
   const cl=$("contacts");cl.innerHTML="";
@@ -1430,6 +1428,17 @@ function renderMe(force){
     li.querySelector(".del").onclick=()=>{const n=(p.contacts||[]).slice();n.splice(i,1);Data.saveProfile({contacts:n})};cl.appendChild(li)});
   if(!(p.contacts||[]).length)cl.innerHTML='<li><span class="empty">No one added yet. Start with your sponsor.</span></li>';
 }
+// saved quotes live on their own screen so a long list never pushes the rest of Me down; newest first
+function renderFavs(){
+  const fl=$("favList");fl.innerHTML="";const favs=S.profile.favQuotes||[];
+  $("favCount").textContent=favs.length?(favs.length===1?"1 quote saved.":favs.length+" quotes saved.")+" Newest first.":"";
+  favs.slice().reverse().forEach(t=>{const q=QUOTES.find(x=>x[0]===t);const li=document.createElement("li");li.innerHTML='<span class="contact"><span class="fq"></span><small></small></span><button class="del" type="button">Remove</button>';
+    li.querySelector(".fq").textContent="“"+t+"”";li.querySelector("small").textContent=q?q[1]+" · "+q[2]:"";
+    li.querySelector(".del").onclick=()=>{Data.saveProfile({favQuotes:(S.profile.favQuotes||[]).filter(x=>x!==t)}).then(()=>toast("Removed"),()=>toast("Couldn't remove that."))};fl.appendChild(li)});
+  if(!favs.length)fl.innerHTML='<li><span class="empty">Nothing saved yet. Tap ♡ Save under a quote on Today to keep it here.</span></li>';
+}
+$("favOpen").onclick=()=>{renderFavs();openOverlay("favs")};
+$("favClose").onclick=()=>closeOverlay("favs");
 function listEditor(id,items,field){
   const ul=$(id);ul.innerHTML="";
   items.forEach((t,i)=>{const li=document.createElement("li");li.innerHTML='<span></span><button class="del" type="button">Remove</button>';li.querySelector("span").textContent=t;
@@ -1469,7 +1478,7 @@ function Pacer(circle,label,clock,total,onTick,onDone){
 let lastFocus=null;
 function openOverlay(id){lastFocus=document.activeElement;$(id).hidden=false;document.body.style.overflow="hidden";$(id).querySelector(".x").focus()}
 function closeOverlay(id){$(id).hidden=true;document.body.style.overflow="";lastFocus&&lastFocus.focus&&lastFocus.focus()}
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("sos").hidden)closeSOS();else if(!$("reh").hidden)closeReh()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("sos").hidden)closeSOS();else if(!$("reh").hidden)closeReh();else if(!$("favs").hidden)closeOverlay("favs")}});
 
 // =============== I'M STRUGGLING ===============
 const sosPacer=Pacer($("sosBreath"),$("sosBreathTxt"),$("sosClock"),600,null,()=>{$("sosStart").textContent="Start again";toast("You rode it out. Well done.")});
