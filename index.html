@@ -108,6 +108,10 @@ textarea{width:100%;resize:vertical;min-height:84px;line-height:1.5}
 .quote blockquote::after{content:"\201D";color:var(--accent)}
 .quote cite{display:block;margin-top:14px;font-style:normal;font-size:.9rem;color:var(--muted)}
 .quote cite b{color:var(--fg);font-weight:600}
+.qactions{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.qfav{font-size:.85rem;background:none;border:0;padding:0;color:var(--accent);cursor:pointer}
+.qfav[aria-pressed="true"]{font-weight:600}
+.fq{font-family:var(--display);font-style:italic}
 .value-card{border-left:3px solid var(--accent);padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:10px}
 .value-name{font-family:var(--display);font-size:1.6rem;font-weight:600;line-height:1.2;margin:0}
 ol.aff{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
@@ -290,6 +294,10 @@ a{color:var(--river)}
     <p class="label">Words to start the day</p>
     <blockquote id="quote"></blockquote>
     <cite id="quoteBy"></cite>
+    <div class="qactions">
+      <button class="linkbtn" id="qNext" type="button">Show me another</button>
+      <button class="qfav" id="qFav" type="button" aria-pressed="false">&#9825; Save</button>
+    </div>
   </section>
 
   <section>
@@ -596,36 +604,62 @@ a{color:var(--river)}
 
 <script>
 // =============== CONTENT ===============
-// Quotes: public-domain translations (Long, Gummere, Legge, Müller, Jowett, Trotter) or traditional sayings.
+// Quotes: [text, author, source, group]. Each checked against a public-domain translation
+// (Long, Gummere, Ross, Jowett, Müller, Legge, King James Version) or a pre-1931 original. Long's "thou/thy" modernized to "you/your".
+const QUOTE_GROUPS=[{k:"philo",n:"Philosophy"},{k:"east",n:"Eastern wisdom"},{k:"writers",n:"Writers and thinkers"},{k:"faith",n:"Faith and scripture"}];
 const QUOTES = [
-  ["Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts.","Marcus Aurelius","Meditations"],
-  ["The universe is change; our life is what our thoughts make it.","Marcus Aurelius","Meditations"],
-  ["Look within. Within is the fountain of good, and it will ever bubble up, if you will ever dig.","Marcus Aurelius","Meditations"],
-  ["No longer talk at all about the kind of man that a good man ought to be, but be such.","Marcus Aurelius","Meditations"],
-  ["If you are pained by any external thing, it is not this thing that disturbs you, but your own judgement about it.","Marcus Aurelius","Meditations"],
-  ["While we are postponing, life speeds by.","Seneca","Letters to Lucilius"],
-  ["We are more often frightened than hurt; and we suffer more from imagination than from reality.","Seneca","Letters to Lucilius"],
-  ["It is not because things are difficult that we do not dare; it is because we do not dare that they are difficult.","Seneca","Letters to Lucilius"],
-  ["Men are disturbed not by things, but by the views which they take of things.","Epictetus","Enchiridion"],
-  ["Some things are in our control and others not.","Epictetus","Enchiridion"],
-  ["First say to yourself what you would be; and then do what you have to do.","Epictetus","Discourses"],
-  ["No man is free who is not master of himself.","Epictetus","Fragments"],
-  ["A journey of a thousand miles begins with a single step.","Lao Tzu","Tao Te Ching"],
-  ["He who knows others is wise; he who knows himself is enlightened.","Lao Tzu","Tao Te Ching"],
-  ["To see what is right and not to do it is want of courage.","Confucius","Analects"],
-  ["When you have faults, do not fear to abandon them.","Confucius","Analects"],
-  ["The unexamined life is not worth living.","Socrates","Plato's Apology"],
-  ["The first and best victory is to conquer self.","Plato","Laws"],
-  ["We become just by doing just acts, temperate by doing temperate acts, brave by doing brave acts.","Aristotle","Nicomachean Ethics"],
-  ["Character is destiny.","Heraclitus","Fragments"],
-  ["All that we are is the result of what we have thought.","The Buddha","Dhammapada"],
-  ["Health is the greatest of gifts, contentedness the greatest of riches.","The Buddha","Dhammapada"],
-  ["It is not the man who has too little, but the man who craves more, that is poor.","Seneca","Letters to Lucilius"],
-  ["He who overcomes others is strong; he who overcomes himself is mighty.","Lao Tzu","Tao Te Ching"],
-  ["All the unhappiness of men arises from one single fact, that they cannot stay quietly in their own chamber.","Blaise Pascal","Pensées"],
-  ["If one man conquer in battle a thousand times thousand men, and if another conquer himself, he is the greatest of conquerors.","The Buddha","Dhammapada"],
-  ["When you know a thing, to hold that you know it; and when you do not know a thing, to allow that you do not know it; this is knowledge.","Confucius","Analects"],
-  ["Never value anything as profitable to thyself which shall compel thee to break thy promise, to lose thy self-respect.","Marcus Aurelius","Meditations"]
+  ["Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts.","Marcus Aurelius","Meditations","philo"],
+  ["The universe is transformation: life is opinion.","Marcus Aurelius","Meditations","philo"],
+  ["Look within. Within is the fountain of good, and it will ever bubble up, if you will ever dig.","Marcus Aurelius","Meditations","philo"],
+  ["No longer talk at all about the kind of man that a good man ought to be, but be such.","Marcus Aurelius","Meditations","philo"],
+  ["If you are pained by any external thing, it is not this thing that disturbs you, but your own judgement about it.","Marcus Aurelius","Meditations","philo"],
+  ["Never value anything as profitable to yourself which shall compel you to break your promise, to lose your self-respect.","Marcus Aurelius","Meditations","philo"],
+  ["The best way of avenging yourself is not to become like the wrongdoer.","Marcus Aurelius","Meditations","philo"],
+  ["Do every act of your life as if it were the last.","Marcus Aurelius","Meditations","philo"],
+  ["While we are postponing, life speeds by.","Seneca","Letters to Lucilius","philo"],
+  ["Hold every hour in your grasp.","Seneca","Letters to Lucilius","philo"],
+  ["We suffer more often in imagination than in reality.","Seneca","Letters to Lucilius","philo"],
+  ["Our lack of confidence is not the result of difficulty. The difficulty comes from our lack of confidence.","Seneca","Letters to Lucilius","philo"],
+  ["It is not the man who has too little, but the man who craves more, that is poor.","Seneca","Letters to Lucilius","philo"],
+  ["You need a change of soul rather than a change of climate.","Seneca","Letters to Lucilius","philo"],
+  ["Of things some are in our power, and others are not.","Epictetus","Enchiridion","philo"],
+  ["Men are disturbed not by the things which happen, but by the opinions about the things.","Epictetus","Enchiridion","philo"],
+  ["Seek not that the things which happen should happen as you wish; but wish the things which happen to be as they are, and you will have a tranquil flow of life.","Epictetus","Enchiridion","philo"],
+  ["The unexamined life is not worth living.","Socrates","Plato's Apology","philo"],
+  ["There is a victory and defeat, the best and the worst, which each man sustains, not at the hands of another, but of himself.","Plato","Laws","philo"],
+  ["We become just by doing just acts, temperate by doing temperate acts, brave by doing brave acts.","Aristotle","Nicomachean Ethics","philo"],
+  ["Character is destiny.","Heraclitus","Fragments","philo"],
+  ["All that we are is the result of what we have thought.","The Buddha","Dhammapada","east"],
+  ["Health is the greatest of gifts, contentedness the best riches.","The Buddha","Dhammapada","east"],
+  ["If one man conquer in battle a thousand times thousand men, and if another conquer himself, he is the greatest of conquerors.","The Buddha","Dhammapada","east"],
+  ["Hatred does not cease by hatred at any time: hatred ceases by love, this is an old rule.","The Buddha","Dhammapada","east"],
+  ["By rousing himself, by earnestness, by restraint and control, the wise man may make for himself an island which no flood can overwhelm.","The Buddha","Dhammapada","east"],
+  ["Self is the lord of self, who else could be the lord?","The Buddha","Dhammapada","east"],
+  ["Well-makers lead the water; fletchers bend the arrow; carpenters bend a log of wood; wise people fashion themselves.","The Buddha","Dhammapada","east"],
+  ["He who overcomes others is strong; he who overcomes himself is mighty.","Lao Tzu","Tao Te Ching","east"],
+  ["He who knows other men is discerning; he who knows himself is intelligent.","Lao Tzu","Tao Te Ching","east"],
+  ["He who is satisfied with his lot is rich.","Lao Tzu","Tao Te Ching","east"],
+  ["The partial becomes complete; the crooked, straight; the empty, full; the worn out, new.","Lao Tzu","Tao Te Ching","east"],
+  ["A journey of a thousand miles begins with a single step.","Lao Tzu","Tao Te Ching (traditional saying)","east"],
+  ["To see what is right and not to do it is want of courage.","Confucius","Analects","east"],
+  ["When you have faults, do not fear to abandon them.","Confucius","Analects","east"],
+  ["When you know a thing, to hold that you know it; and when you do not know a thing, to allow that you do not know it; this is knowledge.","Confucius","Analects","east"],
+  ["Trust thyself: every heart vibrates to that iron string.","Ralph Waldo Emerson","Self-Reliance","writers"],
+  ["Things do not change; we change.","Henry David Thoreau","Walden","writers"],
+  ["Never suffer an exception to occur till the new habit is securely rooted in your life.","William James","The Principles of Psychology","writers"],
+  ["Seize the very first possible opportunity to act on every resolution you make.","William James","The Principles of Psychology","writers"],
+  ["Your pain is the breaking of the shell that encloses your understanding.","Kahlil Gibran","The Prophet","writers"],
+  ["The deeper that sorrow carves into your being, the more joy you can contain.","Kahlil Gibran","The Prophet","writers"],
+  ["Work is love made visible.","Kahlil Gibran","The Prophet","writers"],
+  ["You are good when you are one with yourself.","Kahlil Gibran","The Prophet","writers"],
+  ["Take therefore no thought for the morrow: for the morrow shall take thought for the things of itself. Sufficient unto the day is the evil thereof.","Matthew 6:34","King James Version","faith"],
+  ["To every thing there is a season, and a time to every purpose under the heaven.","Ecclesiastes 3:1","King James Version","faith"],
+  ["He that is slow to anger is better than the mighty; and he that ruleth his spirit than he that taketh a city.","Proverbs 16:32","King James Version","faith"],
+  ["They are new every morning: great is thy faithfulness.","Lamentations 3:23","King James Version","faith"],
+  ["They shall run, and not be weary; and they shall walk, and not faint.","Isaiah 40:31","King James Version","faith"],
+  ["Be still, and know that I am God.","Psalm 46:10","King James Version","faith"],
+  ["Weeping may endure for a night, but joy cometh in the morning.","Psalm 30:5","King James Version","faith"],
+  ["This is the day which the Lord hath made; we will rejoice and be glad in it.","Psalm 118:24","King James Version","faith"]
 ];
 const AFFIRMATIONS = [
   "Just for today, I will not drink.","I am enough, sober and just as I am.","I don't have to do this alone.",
