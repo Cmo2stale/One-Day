@@ -94,6 +94,11 @@ textarea{width:100%;resize:vertical;min-height:84px;line-height:1.5}
 .daybar .date span{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .nav{font-size:1.2rem;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;flex:none}
 .today-link{font-size:.75rem;background:none;border:0;color:var(--river);cursor:pointer;text-decoration:underline;padding:0}
+.nav:disabled{visibility:hidden}
+.missing{background:var(--accent-soft);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.missing p{margin:0;font-size:.92rem}
+.tab{position:relative}
+.tab .dot{position:absolute;top:6px;left:calc(50% + 8px);width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .rehearse{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:var(--river-soft);border:0;color:var(--fg);cursor:pointer;text-align:left;width:100%}
 .rehearse .ring{width:38px;height:38px;border-radius:50%;border:2px solid var(--river);flex:none;display:grid;place-items:center;color:var(--river)}
 .rehearse strong{display:block;font-weight:600}
@@ -383,11 +388,17 @@ a{color:var(--river)}
 <section class="view" id="v-checkin" aria-label="Check-in" hidden>
   <div>
     <h1 class="page">Check-in</h1>
-    <p class="lede" id="ciLede"></p>
-    <div class="seg" role="group" aria-label="Which day" style="margin-top:12px">
-      <button type="button" id="ciToday" aria-pressed="true">Today</button>
-      <button type="button" id="ciYest" aria-pressed="false">Yesterday</button>
+    <p class="lede">Check in for today, or step back to fill in a day you missed.</p>
+    <div class="daybar" style="margin-top:14px">
+      <button class="nav" id="ciPrev" type="button" aria-label="Previous day">&#8249;</button>
+      <div class="date">
+        <span id="ciKicker">Today</span>
+        <strong id="ciDate"></strong>
+        <button class="today-link" id="ciToToday" type="button" hidden>Back to today</button>
+      </div>
+      <button class="nav" id="ciNext" type="button" aria-label="Next day">&#8250;</button>
     </div>
+    <div id="ciMissing"></div>
   </div>
 
   <section aria-labelledby="ciHead" style="display:flex;flex-direction:column;gap:22px">
@@ -403,7 +414,7 @@ a{color:var(--river)}
       <h2 class="h" id="evHead" style="margin:0">An honest look back at the day</h2>
       <p class="hint" style="margin-top:6px">In the spirit of the 10th Step: notice, own your part, and let the day go.</p>
     </div>
-    <div class="field"><span>Did I stay sober today?</span>
+    <div class="field"><span id="soberQ">Did I stay sober today?</span>
       <div class="sober-q"><button class="chip" type="button" id="soberYes" aria-pressed="false">Yes</button><button class="chip" type="button" id="soberNo" aria-pressed="false">Not today</button></div>
     </div>
     <p class="gentle" id="slipNote" hidden>Thank you for being honest. That takes real courage, and one hard day doesn't erase your progress. Please reach out to your sponsor or get to a meeting today. If you want to restart your count, you can change your sobriety date under Me.</p>
@@ -880,6 +891,12 @@ function soberDays(day){const s=dateStrToDay(S.profile.soberDate);if(s==null)ret
 function renderHeader(){
   const n=soberDays();
   $("daycount").innerHTML=n==null?"":n<=0?"<b>Day one</b>":"<b>"+n.toLocaleString()+"</b> "+(n===1?"day":"days");
+  // small dot on the Check-in tab when recent days are missing
+  const t=document.querySelector('.tab[data-tab="checkin"]');
+  if(t){let d=t.querySelector(".dot");const on=missingDays().length>0;
+    if(on&&!d){d=document.createElement("span");d.className="dot";d.setAttribute("aria-hidden","true");t.appendChild(d)}
+    else if(!on&&d)d.remove();
+    t.setAttribute("aria-label",on?"Check-in, some recent days missing":"Check-in")}
 }
 
 // tabs
@@ -916,6 +933,7 @@ function renderToday(onlyValue){
     $("dateLabel").textContent=fmt(current);
     $("dayKicker").textContent=diff===0?"Today":diff===-1?"Yesterday":diff===1?"Tomorrow":(diff<0?(-diff)+" days ago":"In "+diff+" days");
     $("toToday").hidden=diff===0;
+    $("next").disabled=diff>=0;
     $("rehearseOpen").hidden=diff!==0;
   }
   // value of the day
@@ -936,7 +954,7 @@ function renderToday(onlyValue){
   inp.addEventListener("change",()=>{const val=inp.value.trim();if(val!==(ci.valueAction||""))Data.saveCheckin(current,{valueAction:val,value:v}).then(()=>toast("Saved"),()=>toast("Couldn't save that. Try again."))});
 }
 $("prev").onclick=()=>{current--;renderToday()};
-$("next").onclick=()=>{current++;renderToday()};
+$("next").onclick=()=>{if(current<todayN){current++;renderToday()}};
 $("toToday").onclick=()=>{current=todayN;renderToday()};
 $("toJournal").onclick=()=>{showTab("journal");setTimeout(()=>$("entryText").focus(),100)};
 $("copy").onclick=()=>{
@@ -1166,13 +1184,37 @@ async function writeWeekly(fresh){
 
 // =============== CHECK-IN ===============
 let ciDay=todayN;
-$("ciToday").onclick=()=>{ciDay=todayN;renderCheckin(true)};
-$("ciYest").onclick=()=>{ciDay=todayN-1;renderCheckin(true)};
+function setCiDay(d){ciDay=Math.min(todayN,d);renderCheckin(true)}
+$("ciPrev").onclick=()=>setCiDay(ciDay-1);
+$("ciNext").onclick=()=>setCiDay(ciDay+1);
+$("ciToToday").onclick=()=>setCiDay(todayN);
+function hasScale(c){return !!(c&&(c.mood||c.craving||c.sleep))}
+// past days in the last week with no mood/cravings/sleep, counted only from the first day this person checked in
+function missingDays(){
+  const days=Object.keys(S.checkins).filter(k=>hasScale(S.checkins[k])).map(k=>+k.slice(1)).filter(n=>!isNaN(n));
+  if(!days.length)return [];
+  const first=Math.min(...days),out=[];
+  for(let d=Math.max(first,todayN-7);d<todayN;d++){if(!hasScale(S.checkins["d"+d]))out.push(d)}
+  return out;
+}
+function relDay(d){const n=todayN-d;return n===0?"Today":n===1?"Yesterday":n+" days ago"}
+function renderMissing(){
+  const box=$("ciMissing");box.innerHTML="";
+  const miss=missingDays();if(!miss.length)return;
+  const wrap=document.createElement("div");wrap.className="missing";
+  const p=document.createElement("p");
+  p.textContent=miss.length===1?"One day this past week has no check-in. Tap it to fill in what you remember.":miss.length+" days this past week have no check-in. Tap one to fill in what you remember.";
+  const chips=document.createElement("div");chips.className="chips";
+  miss.forEach(d=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=fmt(d,{weekday:"short",month:"short",day:"numeric"});b.setAttribute("aria-pressed",d===ciDay);b.onclick=()=>setCiDay(d);chips.appendChild(b)});
+  wrap.append(p,chips);box.appendChild(wrap);
+}
 function renderCheckin(force){
   const view=$("v-checkin");
   if(!force&&view.contains(document.activeElement)&&document.activeElement.tagName==="TEXTAREA")return;
-  $("ciToday").setAttribute("aria-pressed",ciDay===todayN);$("ciYest").setAttribute("aria-pressed",ciDay!==todayN);
-  $("ciLede").textContent=fmt(ciDay);
+  $("ciDate").textContent=fmt(ciDay);$("ciKicker").textContent=relDay(ciDay);
+  $("ciNext").disabled=ciDay>=todayN;$("ciToToday").hidden=ciDay===todayN;
+  $("soberQ").textContent=ciDay===todayN?"Did I stay sober today?":"Did I stay sober that day?";
+  renderMissing();
   const c=S.checkins["d"+ciDay]||{};
   const sc=$("scales");sc.innerHTML="";
   SCALES.forEach(s=>{
@@ -1259,17 +1301,23 @@ function renderTrend(){
     const last=[...r.vals].reverse().find(v=>v!=null);
     row.innerHTML='<h3><span class="t"></span><span class="n"></span></h3>';
     row.querySelector(".t").textContent=r.s.name;row.querySelector(".n").textContent=r.s.note||"";
-    let path="",dots="";let prev=null;
-    r.vals.forEach((v,i)=>{if(v==null){prev=null;return}
-      path+=(prev==null?"M":"L")+x(i).toFixed(1)+" "+y(v).toFixed(1)+" ";
-      const iso=(prev==null)&&(i===N-1||r.vals[i+1]==null);if(iso)dots+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3" fill="var(--river)"/>';prev=v});
+    // solid line between back-to-back check-ins; faint dashed line across gaps of up to a week
+    let path="",bridge="",dots="";let prev=null,prevI=-1;
+    r.vals.forEach((v,i)=>{if(v==null)return;
+      const pt=x(i).toFixed(1)+" "+y(v).toFixed(1);
+      const gap=prevI<0||i-prevI>1;
+      if(gap){path+="M"+pt+" ";if(prevI>=0&&i-prevI<=8)bridge+="M"+x(prevI).toFixed(1)+" "+y(prev).toFixed(1)+" L"+pt+" "}
+      else path+="L"+pt+" ";
+      if(gap&&(i===N-1||r.vals[i+1]==null))dots+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3" fill="var(--river)"/>';
+      prev=v;prevI=i});
+    const bridgeEl=bridge?'<path d="'+bridge+'" fill="none" stroke="var(--river)" stroke-width="1.5" stroke-dasharray="3 4" stroke-linecap="round" opacity=".55"/>':"";
     const li=r.vals.map((v,i)=>v!=null?i:-1).filter(i=>i>=0).pop();
     const grid=[1,3,5].map(g=>'<line x1="'+padL+'" x2="'+(Wd-padR)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(Wd-padR+8)+'" y="'+(y(g)+4)+'" font-size="10" fill="var(--muted)">'+g+'</text>').join("");
     const end=li!=null?'<circle cx="'+x(li)+'" cy="'+y(r.vals[li])+'" r="4.5" fill="var(--river)" stroke="var(--bg)" stroke-width="2"/>':"";
-    row.insertAdjacentHTML("beforeend",'<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="'+esc(r.s.name)+' over the last 30 days, latest '+(last||"none")+' of 5">'+grid+'<path d="'+path+'" fill="none" stroke="var(--river)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+dots+end+'<line class="xh" x1="0" x2="0" y1="'+padT+'" y2="'+(H-padB)+'" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/></svg>');
+    row.insertAdjacentHTML("beforeend",'<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="'+esc(r.s.name)+' over the last 30 days, latest '+(last||"none")+' of 5">'+grid+bridgeEl+'<path d="'+path+'" fill="none" stroke="var(--river)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+dots+end+'<line class="xh" x1="0" x2="0" y1="'+padT+'" y2="'+(H-padB)+'" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/></svg>');
     box.appendChild(row);svgs.push({svg:row.querySelector("svg"),r});
   });
-  box.insertAdjacentHTML("beforeend",'<div class="trend-x" style="padding-right:'+(padR/Wd*100)+'%"><span>'+fmtShort(first)+'</span><span>Today</span></div><p class="readout" id="readout" aria-live="polite">Tap or hover on the chart to see a day.</p>');
+  box.insertAdjacentHTML("beforeend",'<div class="trend-x" style="padding-right:'+(padR/Wd*100)+'%"><span>'+fmtShort(first)+'</span><span>Today</span></div><p class="readout" id="readout" aria-live="polite">Tap or hover on the chart to see a day. Dashed lines cross days with no check-in.</p>');
   const show=i=>{
     svgs.forEach(({svg})=>{const l=svg.querySelector(".xh");l.setAttribute("x1",x(i));l.setAttribute("x2",x(i));l.setAttribute("visibility","visible")});
     const parts=rows.map(r=>r.vals[i]!=null?r.s.name.split(" ")[0]+" "+r.vals[i]+" ("+r.s.labels[r.vals[i]-1]+")":null).filter(Boolean);
